@@ -50,9 +50,9 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T011 [P] [US1] Unit test for saveMoney() database operation in test/unit_test/database_service_test.dart
-- [ ] T012 [P] [US1] Widget test for SavingsButton press animation in test/widget_test/savings_button_test.dart
-- [ ] T013 [P] [US1] Integration test for complete save flow in test/integration_test/app_test.dart
+- [X] T011 [P] [US1] Unit test for saveMoney() database operation in test/unit_test/database_service_test.dart
+- [X] T012 [P] [US1] Widget test for SavingsButton press animation in test/widget_test/savings_button_test.dart
+- [X] T013 [P] [US1] Integration test for complete save flow in test/integration_test/app_test.dart
 
 ### Implementation for User Story 1
 
@@ -75,17 +75,17 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T020 [P] [US2] Unit test for progress calculations and persistence in test/unit_test/savings_service_test.dart
-- [ ] T021 [P] [US2] Widget test for ProgressDisplay number animation in test/widget_test/progress_display_test.dart
-- [ ] T022 [P] [US2] Integration test for data persistence across app restarts in test/integration_test/app_test.dart
+- [X] T020 [P] [US2] Unit test for progress calculations and persistence in test/unit_test/savings_service_test.dart
+- [X] T021 [P] [US2] Widget test for ProgressDisplay number animation in test/widget_test/progress_display_test.dart
+- [X] T022 [P] [US2] Integration test for data persistence across app restarts in test/integration_test/app_test.dart
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Create ProgressDisplay widget with animated counters in lib/widgets/progress_display.dart
-- [ ] T024 [US2] Implement getSavingsHistory() method for progress tracking in lib/services/database_service.dart
-- [ ] T025 [US2] Add progress state management to HomeScreen in lib/screens/home_screen.dart
-- [ ] T026 [US2] Integrate progress display with save button functionality
-- [ ] T027 [US2] Add Korean number formatting with thousand separators
+- [X] T023 [P] [US2] Create ProgressDisplay widget with animated counters in lib/widgets/progress_display.dart
+- [X] T024 [US2] Implement getSavingsHistory() method for progress tracking in lib/services/database_service.dart
+- [X] T025 [US2] Add progress state management to HomeScreen in lib/screens/home_screen.dart
+- [X] T026 [US2] Integrate progress display with save button functionality
+- [X] T027 [US2] Add Korean number formatting with thousand separators
 
 **Checkpoint**: User Stories 1 AND 2 should both work independently
 

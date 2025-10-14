@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../widgets/savings_button.dart';
+import '../widgets/progress_display.dart';
 import '../services/database_service.dart';
 import '../services/feedback_service.dart';
 import '../services/logger_service.dart';
 import '../models/user_progress.dart';
 import '../models/savings_result.dart';
+import '../utils/korean_number_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -108,17 +110,46 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🎉 Milestone Achieved!'),
+        title: const Text('🎉 목표 달성!'),
         content: Text(
-          'Congratulations! You\'ve reached ${milestones.map((m) => '₩${m.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}').join(', ')}!',
+          '축하합니다! ${milestones.map((m) => KoreanNumberFormatter.formatMilestoneMessage(m)).join('\n')}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Awesome!'),
+            child: const Text('훌륭해요!'),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatColumn(String label, String value, IconData icon) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: Colors.grey[600],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -134,55 +165,63 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Progress Display
+              // Enhanced Progress Display with Animation
+              ProgressDisplay(
+                currentAmount: _progress.totalSavings,
+                targetAmount: KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                showAnimation: true,
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Quick Stats Card
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text(
-                        'Your Progress',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      _buildStatColumn(
+                        '오늘',
+                        '${_progress.todaySessionCount}회',
+                        Icons.today,
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Total Saved'),
-                              Text(
-                                '₩${_progress.totalSavings.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('Today'),
-                              Text(
-                                '${_progress.todaySessionCount} saves',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      _buildStatColumn(
+                        '총 저축',
+                        '${_progress.totalSessions}회',
+                        Icons.savings,
+                      ),
+                      _buildStatColumn(
+                        '연속 기록',
+                        '${_progress.currentStreak}일',
+                        Icons.local_fire_department,
                       ),
                     ],
                   ),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Progress Message
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Text(
+                  KoreanNumberFormatter.formatProgressMessage(
+                    _progress.totalSavings,
+                    KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
               
@@ -216,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
               
               // Button Label
               Text(
-                _isLoading ? 'Saving...' : 'Tap to save ₩1,000',
+                _isLoading ? '저장 중...' : '터치해서 ₩1,000 저축하기',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
