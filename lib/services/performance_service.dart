@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'dart:async';
 import 'dart:io';
 import 'logger_service.dart';
 
@@ -8,6 +9,9 @@ class PerformanceService {
   static const int _warningThresholdMs = 30;
   static const int _maxMemoryMb = 100; // Memory limit requirement
   static const int _memoryWarningThresholdMb = 80;
+  
+  // Store subscription to prevent memory leak
+  static StreamSubscription<void>? _memoryMonitoringSubscription;
   
   /// Monitor a database operation and log performance metrics
   static Future<T> monitorDatabaseOperation<T>(
@@ -222,10 +226,19 @@ class PerformanceService {
   static void startMemoryMonitoring() {
     if (!kDebugMode) return;
     
+    // Cancel existing subscription to prevent duplicates
+    _memoryMonitoringSubscription?.cancel();
+    
     // Check memory every 30 seconds
-    Stream.periodic(const Duration(seconds: 30)).listen((_) async {
+    _memoryMonitoringSubscription = Stream.periodic(const Duration(seconds: 30)).listen((_) async {
       await checkMemoryUsage();
     });
+  }
+  
+  /// Stop memory monitoring and clean up resources
+  static void stopMemoryMonitoring() {
+    _memoryMonitoringSubscription?.cancel();
+    _memoryMonitoringSubscription = null;
   }
   
   /// Track animation frame timing
