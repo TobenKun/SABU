@@ -86,6 +86,67 @@ class UserProgress {
     return milestones.every((milestone) => milestone % 10000 == 0);
   }
   
+  /// Get the next milestone amount that the user is working towards
+  int get nextMilestone {
+    final currentMilestones = (totalSavings / 10000).floor();
+    return (currentMilestones + 1) * 10000;
+  }
+  
+  /// Get progress percentage towards the next milestone (0.0 to 1.0)
+  double get progressToNextMilestone {
+    if (totalSavings == 0) return 0.0;
+    final lastMilestone = (totalSavings / 10000).floor() * 10000;
+    final nextMilestone = lastMilestone + 10000;
+    final progressInRange = totalSavings - lastMilestone;
+    return progressInRange / 10000.0;
+  }
+  
+  /// Get the amount needed to reach the next milestone
+  int get amountToNextMilestone {
+    return nextMilestone - totalSavings;
+  }
+  
+  /// Check if a specific amount is a milestone
+  bool isMilestone(int amount) {
+    return amount > 0 && amount % 10000 == 0;
+  }
+  
+  /// Get the total number of milestones achieved
+  int get milestonesCount {
+    return milestones.length;
+  }
+  
+  /// Get the latest milestone achieved (returns 0 if none)
+  int get latestMilestone {
+    if (milestones.isEmpty) return 0;
+    return milestones.last;
+  }
+  
+  /// Check if the user has achieved a specific milestone
+  bool hasAchievedMilestone(int milestone) {
+    return milestones.contains(milestone);
+  }
+  
+  /// Validate milestone data integrity
+  bool validateMilestoneIntegrity() {
+    // Check that milestones are sorted
+    for (int i = 1; i < milestones.length; i++) {
+      if (milestones[i] <= milestones[i - 1]) return false;
+    }
+    
+    // Check that all milestones are valid (10k increments)
+    if (!milestones.every((m) => m % 10000 == 0)) return false;
+    
+    // Check that milestones don't exceed current total
+    if (milestones.any((m) => m > totalSavings)) return false;
+    
+    // Check that we have all milestones we should have
+    final expectedMilestones = (totalSavings / 10000).floor();
+    if (milestones.length != expectedMilestones) return false;
+    
+    return true;
+  }
+  
   @override
   String toString() {
     return 'UserProgress{totalSavings: $totalSavings, totalSessions: $totalSessions, todaySessionCount: $todaySessionCount, lastSaveDate: $lastSaveDate, currentStreak: $currentStreak, longestStreak: $longestStreak, milestones: $milestones}';

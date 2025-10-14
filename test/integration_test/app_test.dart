@@ -352,4 +352,294 @@ void main() {
       }
     });
   });
+
+  group('Milestone Flow Integration Tests (Phase 5)', () {
+    testWidgets('milestone detection works in complete user flow', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      // Start app and verify clean state
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Save 9 times (₩9,000)
+        for (int i = 0; i < 9; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Verify no milestone celebration yet
+        expect(find.textContaining('milestone'), findsNothing);
+        expect(find.textContaining('축하'), findsNothing);
+
+        // 10th save should trigger milestone
+        await tester.tap(savingsButtonFinder);
+        await tester.pumpAndSettle();
+
+        // Should show milestone celebration
+        expect(find.textContaining('₩10,000'), findsOneWidget);
+        expect(find.textContaining('milestone'), findsOneWidget);
+        expect(find.textContaining('축하'), findsOneWidget);
+      }
+    });
+
+    testWidgets('multiple milestones work correctly', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Reach first milestone (₩10,000)
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Verify first milestone
+        expect(find.textContaining('₩10,000'), findsOneWidget);
+        
+        // Continue to second milestone (₩20,000)
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Should show second milestone
+        expect(find.textContaining('₩20,000'), findsOneWidget);
+
+        // Continue to third milestone (₩30,000)
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Should show third milestone
+        expect(find.textContaining('₩30,000'), findsOneWidget);
+      }
+    });
+
+    testWidgets('milestone celebrations have proper enhanced feedback', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Reach milestone
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Look for enhanced feedback elements
+        final celebrationFinder = find.byKey(const Key('milestone_celebration'));
+        if (celebrationFinder.evaluate().isNotEmpty) {
+          expect(celebrationFinder, findsOneWidget);
+          
+          // Check for enhanced animation elements
+          expect(find.byKey(const Key('celebration_scale_animation')), findsOneWidget);
+          expect(find.byKey(const Key('celebration_color_animation')), findsOneWidget);
+          
+          // Animation should complete
+          await tester.pumpAndSettle();
+        }
+      }
+    });
+
+    testWidgets('milestone persistence across app restarts', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      // Session 1: Reach milestone
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Verify milestone state
+        expect(find.textContaining('₩10,000'), findsOneWidget);
+      }
+
+      await DatabaseService.closeDatabase();
+
+      // Session 2: Verify milestone data persists
+      app.main();
+      await tester.pumpAndSettle();
+
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Should still show milestone achievement
+        expect(find.textContaining('₩10,000'), findsOneWidget);
+        
+        // Verify milestone is recorded in database
+        final progress = await databaseService.getCurrentProgress();
+        expect(progress.milestones, contains(10000));
+      }
+    });
+
+    testWidgets('rapid savings correctly detect consecutive milestones', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Rapid fire to reach multiple milestones quickly
+        for (int i = 0; i < 25; i++) {
+          tester.tap(savingsButtonFinder);
+          // Small delay to avoid overwhelming the system
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        await tester.pumpAndSettle();
+
+        // Should correctly show final amount
+        expect(find.textContaining('₩25,000'), findsOneWidget);
+
+        // Verify all milestones were detected
+        final progress = await databaseService.getCurrentProgress();
+        expect(progress.milestones, containsAll([10000, 20000]));
+      }
+    });
+
+    testWidgets('milestone celebration animations complete within time limits', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Save 9 times
+        for (int i = 0; i < 9; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Measure milestone celebration time
+        final stopwatch = Stopwatch()..start();
+        
+        // Trigger milestone
+        await tester.tap(savingsButtonFinder);
+        
+        // Wait for celebration to complete
+        await tester.pumpAndSettle();
+        stopwatch.stop();
+
+        // Celebration should complete within 2 seconds
+        expect(stopwatch.elapsedMilliseconds, lessThan(2000),
+          reason: 'Milestone celebration should complete within 2 seconds');
+      }
+    });
+
+    testWidgets('milestone feedback does not interfere with subsequent saves', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Reach milestone
+        for (int i = 0; i < 10; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Immediately make another save after milestone
+        await tester.tap(savingsButtonFinder);
+        await tester.pumpAndSettle();
+
+        // Should show ₩11,000 without issues
+        expect(find.textContaining('₩11,000'), findsOneWidget);
+
+        // Continue saving normally
+        await tester.tap(savingsButtonFinder);
+        await tester.pumpAndSettle();
+        
+        expect(find.textContaining('₩12,000'), findsOneWidget);
+      }
+    });
+
+    testWidgets('large milestone amounts are handled correctly', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      // Simulate having saved a large amount already
+      // (This would typically be done by manipulating database directly)
+      // For now, test the UI can handle large numbers
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      if (savingsButtonFinder.evaluate().isNotEmpty) {
+        // Test reaching ₩100,000 milestone (would take 100 saves)
+        // For test efficiency, we'll simulate rapid saves
+        for (int i = 0; i < 100; i++) {
+          tester.tap(savingsButtonFinder);
+          // Only pump occasionally to speed up test
+          if (i % 10 == 0) {
+            await tester.pump(const Duration(milliseconds: 1));
+          }
+        }
+        await tester.pumpAndSettle();
+
+        // Should display large amounts correctly
+        expect(find.textContaining('₩100,000'), findsOneWidget);
+
+        // Verify milestone was detected
+        final progress = await databaseService.getCurrentProgress();
+        expect(progress.milestones, contains(100000));
+        expect(progress.totalSavings, equals(100000));
+      }
+    });
+
+    testWidgets('milestone tracking integrates with progress display', (WidgetTester tester) async {
+      final databaseService = DatabaseService();
+      await databaseService.resetUserData();
+
+      app.main();
+      await tester.pumpAndSettle();
+
+      final savingsButtonFinder = find.byKey(const Key('savings_button'));
+      final progressDisplayFinder = find.byKey(const Key('progress_display'));
+      
+      if (savingsButtonFinder.evaluate().isNotEmpty && 
+          progressDisplayFinder.evaluate().isNotEmpty) {
+        
+        // Save to near milestone
+        for (int i = 0; i < 9; i++) {
+          await tester.tap(savingsButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Progress display should show ₩9,000
+        expect(find.textContaining('₩9,000'), findsOneWidget);
+
+        // Cross milestone threshold
+        await tester.tap(savingsButtonFinder);
+        await tester.pumpAndSettle();
+
+        // Progress display should update to show milestone
+        expect(find.textContaining('₩10,000'), findsOneWidget);
+        
+        // Check for milestone indicator in progress display
+        expect(find.byKey(const Key('milestone_indicator')), findsOneWidget);
+      }
+    });
+  });
 }

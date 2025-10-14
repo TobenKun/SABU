@@ -167,11 +167,16 @@ class DatabaseService {
       // Get updated progress
       updatedProgress = await getCurrentProgress();
       
-      // Check for milestones
-      final milestones = _detectMilestones(
-        updatedProgress.totalSavings - 1000,
-        updatedProgress.totalSavings,
-      );
+      // Check for milestones and update database
+      final previousTotal = updatedProgress.totalSavings - 1000;
+      final milestones = _detectMilestones(previousTotal, updatedProgress.totalSavings);
+      
+      // If milestones were achieved, update the database
+      if (milestones.isNotEmpty) {
+        await _updateMilestonesInDatabase(updatedProgress.milestones, milestones);
+        // Refresh progress to get updated milestones
+        updatedProgress = await getCurrentProgress();
+      }
       
       LoggerService.logDatabaseOperation('Save money operation completed', {
         'newTotal': updatedProgress.totalSavings,
@@ -323,6 +328,56 @@ class DatabaseService {
   }
   
   List<int> _detectMilestones(int oldTotal, int newTotal) {
+    final oldMilestones = (oldTotal / 10000).floor();
+    final newMilestones = (newTotal / 10000).floor();
+    
+    if (newMilestones > oldMilestones) {
+      return List.generate(
+        newMilestones - oldMilestones,
+        (i) => (oldMilestones + i + 1) * 10000,
+      );
+    }
+    return [];
+  }
+  
+  Future<void> _updateMilestonesInDatabase(List<int> currentMilestones, List<int> newMilestones) async {
+    try {
+      final db = await database;
+      final allMilestones = [...currentMilestones, ...newMilestones];
+      final uniqueMilestones = allMilestones.toSet().toList()..sort();
+      
+      await db.update(
+        'user_progress',
+        {'milestones': _milestoneListToJson(uniqueMilestones)},
+        where: 'id = ?',
+        whereArgs: [1],
+      );
+      
+      LoggerService.logDatabaseOperation('Milestones updated in database', {
+        'newMilestones': newMilestones,
+        'allMilestones': uniqueMilestones,
+      });
+    } catch (e) {
+      LoggerService.error('Failed to update milestones in database', e);
+      throw DatabaseException(
+        DatabaseError.connectionFailed,
+        'Failed to update milestones: ${e.toString()}',
+        e,
+      );
+    }
+  }
+  
+  String _milestoneListToJson(List<int> milestones) {
+    // Simple JSON array format: [10000,20000,30000]
+    return '[${milestones.join(',')}]';
+  }
+  
+  // Public utility functions for testing
+  static bool isMilestone(int amount) {
+    return amount > 0 && amount % 10000 == 0;
+  }
+  
+  static List<int> detectNewMilestones(int oldTotal, int newTotal) {
     final oldMilestones = (oldTotal / 10000).floor();
     final newMilestones = (newTotal / 10000).floor();
     

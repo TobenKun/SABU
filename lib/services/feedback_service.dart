@@ -70,6 +70,42 @@ class FeedbackService {
     await haptic(FeedbackType.heavy);
   }
   
+  /// Enhanced milestone feedback with multiple pulses for special celebrations
+  static Future<void> milestoneCelebration() async {
+    if (!_hapticsEnabled) return;
+    
+    try {
+      // Triple heavy impact for milestone celebrations
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(Duration(milliseconds: 100));
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(Duration(milliseconds: 100));
+      await HapticFeedback.heavyImpact();
+    } catch (e) {
+      // Silently fail if haptics aren't supported
+    }
+  }
+  
+  /// Milestone feedback synchronized with celebration animation timing
+  static Future<void> milestoneWithAnimation({
+    Duration animationDuration = const Duration(milliseconds: 2000),
+  }) async {
+    if (!_hapticsEnabled) return;
+    
+    try {
+      // Initial celebration burst
+      await milestoneCelebration();
+      
+      // If animation is long enough, add a mid-point emphasis
+      if (animationDuration.inMilliseconds > 1500) {
+        await Future.delayed(Duration(milliseconds: animationDuration.inMilliseconds ~/ 2));
+        await HapticFeedback.mediumImpact();
+      }
+    } catch (e) {
+      // Silently fail if haptics aren't supported
+    }
+  }
+  
   /// Convenience method for error feedback
   static Future<void> error() async {
     await haptic(FeedbackType.error);
