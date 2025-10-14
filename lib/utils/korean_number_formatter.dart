@@ -125,10 +125,9 @@ class KoreanNumberFormatter {
     };
   }
   
-  /// Format time-based progress messages
-  static String formatProgressMessage(int currentAmount, int targetAmount) {
-    final percentage = calculatePercentage(currentAmount, targetAmount);
-    final remaining = targetAmount - currentAmount;
+  /// Format time-based progress messages using UserProgress
+  static String formatProgressMessageFromProgress(double progressPercentage, int remaining) {
+    final percentage = (progressPercentage * 100).clamp(0.0, 100.0);
     
     if (percentage >= 100) {
       return '목표 달성! 축하합니다! 🎉';
@@ -142,4 +141,6 @@ class KoreanNumberFormatter {
       return '화이팅! ${formatCurrency(remaining)} 남았습니다';
     }
   }
+
+
 }

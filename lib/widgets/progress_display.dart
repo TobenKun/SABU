@@ -5,6 +5,7 @@ import '../services/performance_service.dart';
 class ProgressDisplay extends StatefulWidget {
   final int currentAmount;
   final int targetAmount;
+  final double? progressPercentage; // 0.0 to 1.0, if provided will override calculation
   final bool showAnimation;
   final Duration animationDuration;
   final VoidCallback? onAnimationComplete;
@@ -13,6 +14,7 @@ class ProgressDisplay extends StatefulWidget {
     super.key,
     required this.currentAmount,
     required this.targetAmount,
+    this.progressPercentage,
     this.showAnimation = true,
     this.animationDuration = const Duration(milliseconds: 600), // Reduced for better performance
     this.onAnimationComplete,
@@ -52,9 +54,10 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   }
   
   void _initializeAnimations() {
-    final targetPercentage = widget.targetAmount > 0 
-        ? (widget.currentAmount / widget.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
+    final targetPercentage = widget.progressPercentage ?? 
+        (widget.targetAmount > 0 
+            ? (widget.currentAmount / widget.targetAmount).clamp(0.0, 1.0)
+            : 0.0);
     
     _progressAnimation = Tween<double>(
       begin: 0.0,
@@ -91,7 +94,8 @@ class _ProgressDisplayState extends State<ProgressDisplay>
     super.didUpdateWidget(oldWidget);
     
     if (oldWidget.currentAmount != widget.currentAmount ||
-        oldWidget.targetAmount != widget.targetAmount) {
+        oldWidget.targetAmount != widget.targetAmount ||
+        oldWidget.progressPercentage != widget.progressPercentage) {
       // Update cached text
       _cachedTargetText = 'Target: ${_formatCurrency(widget.targetAmount)}';
       _updateAnimations();
@@ -99,9 +103,10 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   }
   
   void _updateAnimations() {
-    final targetPercentage = widget.targetAmount > 0 
-        ? (widget.currentAmount / widget.targetAmount).clamp(0.0, 1.0)
-        : 0.0;
+    final targetPercentage = widget.progressPercentage ?? 
+        (widget.targetAmount > 0 
+            ? (widget.currentAmount / widget.targetAmount).clamp(0.0, 1.0)
+            : 0.0);
     
     _progressAnimation = Tween<double>(
       begin: _progressAnimation.value,
@@ -136,61 +141,71 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: Container(
-        key: const Key('progress_display'),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              spreadRadius: 2,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Optimized animated counter with RepaintBoundary
-            RepaintBoundary(
-              child: AnimatedBuilder(
-                animation: _counterAnimation,
-                builder: (context, child) {
-                  final currentValue = _counterAnimation.value;
-                  // Cache formatted text to avoid re-computation
-                  if (_cachedCounterText == null || 
-                      !_cachedCounterText!.contains(currentValue.toString())) {
-                    _cachedCounterText = _formatCurrency(currentValue);
-                  }
-                  
-                  return Text(
-                    _cachedCounterText!,
-                    key: const Key('progress_counter'),
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4CAF50),
-                    ),
-                  );
-                },
+      child: SizedBox(
+        width: double.infinity,
+        child: Container(
+          key: const Key('progress_display'),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                spreadRadius: 2,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Optimized animated counter with RepaintBoundary
+              RepaintBoundary(
+                child: SizedBox(
+                  height: 50, // Fixed height for consistent sizing
+                  child: AnimatedBuilder(
+                    animation: _counterAnimation,
+                    builder: (context, child) {
+                      final currentValue = _counterAnimation.value;
+                      // Cache formatted text to avoid re-computation
+                      if (_cachedCounterText == null || 
+                          !_cachedCounterText!.contains(currentValue.toString())) {
+                        _cachedCounterText = _formatCurrency(currentValue);
+                      }
+                      
+                      return Text(
+                        _cachedCounterText!,
+                        key: const Key('progress_counter'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4CAF50),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             
             const SizedBox(height: 8),
             
-            // Static target display (no need to rebuild)
-            Text(
-              _cachedTargetText!,
-              key: const Key('target_display'),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+              // Static target display (no need to rebuild)
+              SizedBox(
+                height: 25, // Fixed height for consistent sizing
+                child: Text(
+                  _cachedTargetText!,
+                  key: const Key('target_display'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
             
             const SizedBox(height: 20),
             
@@ -228,25 +243,30 @@ class _ProgressDisplayState extends State<ProgressDisplay>
             
             const SizedBox(height: 12),
             
-            // Optimized percentage display
-            RepaintBoundary(
-              child: AnimatedBuilder(
-                animation: _progressAnimation,
-                builder: (context, child) {
-                  final percentage = (_progressAnimation.value * 100).toStringAsFixed(1);
-                  return Text(
-                    '$percentage%',
-                    key: const Key('percentage_display'),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF4CAF50),
-                    ),
-                  );
-                },
+              // Optimized percentage display
+              RepaintBoundary(
+                child: SizedBox(
+                  height: 30, // Fixed height for consistent sizing
+                  child: AnimatedBuilder(
+                    animation: _progressAnimation,
+                    builder: (context, child) {
+                      final percentage = (_progressAnimation.value * 100).toStringAsFixed(1);
+                      return Text(
+                        '$percentage%',
+                        key: const Key('percentage_display'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF4CAF50),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

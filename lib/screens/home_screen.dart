@@ -185,7 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Enhanced Progress Display with Animation
                         ProgressDisplay(
                           currentAmount: _progress.totalSavings,
-                          targetAmount: KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                          targetAmount: _progress.nextMilestone,
+                          progressPercentage: _progress.progressToNextMilestone,
                           showAnimation: true,
                         ),
                         
@@ -229,9 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                           ),
                           child: Text(
-                            KoreanNumberFormatter.formatProgressMessage(
-                              _progress.totalSavings,
-                              KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                            KoreanNumberFormatter.formatProgressMessageFromProgress(
+                              _progress.progressToNextMilestone,
+                              _progress.amountToNextMilestone,
                             ),
                             style: const TextStyle(
                               fontSize: 16,
