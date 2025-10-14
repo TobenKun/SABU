@@ -77,9 +77,9 @@ class FeedbackService {
     try {
       // Triple heavy impact for milestone celebrations
       await HapticFeedback.heavyImpact();
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
       await HapticFeedback.heavyImpact();
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
       await HapticFeedback.heavyImpact();
     } catch (e) {
       // Silently fail if haptics aren't supported

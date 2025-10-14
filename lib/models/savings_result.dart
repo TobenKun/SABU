@@ -56,7 +56,7 @@ class SavingsResult {
   int get hashCode {
     return newTotal.hashCode ^
         todayCount.hashCode ^
-        milestonesHit.hashCode ^
+        _listHashCode(milestonesHit) ^
         success.hashCode ^
         error.hashCode;
   }
@@ -67,5 +67,13 @@ class SavingsResult {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+  
+  int _listHashCode<T>(List<T> list) {
+    int hash = 0;
+    for (final item in list) {
+      hash ^= item.hashCode;
+    }
+    return hash;
   }
 }

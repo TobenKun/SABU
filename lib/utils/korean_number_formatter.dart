@@ -32,17 +32,25 @@ class KoreanNumberFormatter {
   /// Calculate next milestone amount
   /// Returns the next 10,000 increment above current amount
   static int getNextMilestone(int currentAmount) {
-    final milestoneIncrement = 10000;
+    const milestoneIncrement = 10000;
     return ((currentAmount / milestoneIncrement).ceil()) * milestoneIncrement;
   }
   
   /// Get current milestone progress
   /// Returns progress towards next milestone
   static double getMilestoneProgress(int currentAmount) {
-    final nextMilestone = getNextMilestone(currentAmount);
-    final previousMilestone = nextMilestone - 10000;
-    final progressInCurrentRange = currentAmount - previousMilestone;
-    return calculatePercentage(progressInCurrentRange, 10000);
+    if (currentAmount == 0) return 0.0;
+    
+    const milestoneIncrement = 10000;
+    
+    // If we're exactly at a milestone, we're at 100% progress to that milestone
+    if (currentAmount % milestoneIncrement == 0) {
+      return 100.0;
+    }
+    
+    final currentMilestone = (currentAmount / milestoneIncrement).floor() * milestoneIncrement;
+    final progressInCurrentRange = currentAmount - currentMilestone;
+    return calculatePercentage(progressInCurrentRange, milestoneIncrement);
   }
   
   /// Check if amount represents a milestone

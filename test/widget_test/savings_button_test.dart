@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/widgets/savings_button.dart';
+import 'package:one_touch_savings/widgets/savings_button.dart';
 
 void main() {
   group('SavingsButton Widget Tests', () {

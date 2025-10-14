@@ -9,22 +9,21 @@ class ProgressDisplay extends StatefulWidget {
   final VoidCallback? onAnimationComplete;
 
   const ProgressDisplay({
-    Key? key,
+    super.key,
     required this.currentAmount,
     required this.targetAmount,
     this.showAnimation = true,
     this.animationDuration = const Duration(milliseconds: 800),
     this.onAnimationComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<ProgressDisplay> createState() => _ProgressDisplayState();
 }
 
 class _ProgressDisplayState extends State<ProgressDisplay>
-    with TickerProviderStateMixin {
-  late AnimationController _progressController;
-  late AnimationController _counterController;
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   late Animation<double> _progressAnimation;
   late Animation<int> _counterAnimation;
   
@@ -32,16 +31,21 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   void initState() {
     super.initState();
     
-    _progressController = AnimationController(
+    _controller = AnimationController(
       duration: widget.animationDuration,
       vsync: this,
     );
     
-    _counterController = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
-    );
+    _initializeAnimations();
     
+    if (widget.showAnimation) {
+      _startAnimation();
+    } else {
+      _controller.value = 1.0;
+    }
+  }
+  
+  void _initializeAnimations() {
     final targetPercentage = widget.targetAmount > 0 
         ? (widget.currentAmount / widget.targetAmount).clamp(0.0, 1.0)
         : 0.0;
@@ -50,7 +54,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
       begin: 0.0,
       end: targetPercentage,
     ).animate(CurvedAnimation(
-      parent: _progressController,
+      parent: _controller,
       curve: Curves.easeOutCubic,
     ));
     
@@ -58,23 +62,13 @@ class _ProgressDisplayState extends State<ProgressDisplay>
       begin: 0,
       end: widget.currentAmount,
     ).animate(CurvedAnimation(
-      parent: _counterController,
+      parent: _controller,
       curve: Curves.easeOutCubic,
     ));
-    
-    if (widget.showAnimation) {
-      _startAnimations();
-    } else {
-      _progressController.value = 1.0;
-      _counterController.value = 1.0;
-    }
   }
   
-  void _startAnimations() async {
-    await Future.wait([
-      _progressController.forward(),
-      _counterController.forward(),
-    ]);
+  void _startAnimation() async {
+    await _controller.forward();
     widget.onAnimationComplete?.call();
   }
   
@@ -97,7 +91,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
       begin: _progressAnimation.value,
       end: targetPercentage,
     ).animate(CurvedAnimation(
-      parent: _progressController,
+      parent: _controller,
       curve: Curves.easeOutCubic,
     ));
     
@@ -105,18 +99,16 @@ class _ProgressDisplayState extends State<ProgressDisplay>
       begin: _counterAnimation.value,
       end: widget.currentAmount,
     ).animate(CurvedAnimation(
-      parent: _counterController,
+      parent: _controller,
       curve: Curves.easeOutCubic,
     ));
     
-    _progressController.reset();
-    _counterController.reset();
+    _controller.reset();
     
     if (widget.showAnimation) {
-      _startAnimations();
+      _startAnimation();
     } else {
-      _progressController.value = 1.0;
-      _counterController.value = 1.0;
+      _controller.value = 1.0;
     }
   }
   
@@ -134,7 +126,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 2,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -230,8 +222,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   
   @override
   void dispose() {
-    _progressController.dispose();
-    _counterController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 }

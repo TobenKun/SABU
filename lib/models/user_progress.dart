@@ -96,7 +96,6 @@ class UserProgress {
   double get progressToNextMilestone {
     if (totalSavings == 0) return 0.0;
     final lastMilestone = (totalSavings / 10000).floor() * 10000;
-    final nextMilestone = lastMilestone + 10000;
     final progressInRange = totalSavings - lastMilestone;
     return progressInRange / 10000.0;
   }

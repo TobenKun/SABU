@@ -35,9 +35,9 @@ void main() {
         ),
       );
 
-      // Find the animated container
-      final animatedContainer = find.byType(AnimatedContainer);
-      expect(animatedContainer, findsOneWidget);
+      // Find the celebration container (using manual animations)
+      final celebrationContainer = find.byKey(const Key('celebration_container'));
+      expect(celebrationContainer, findsOneWidget);
 
       // Pump initial frame
       await tester.pump();
@@ -48,7 +48,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       
       // Animation should be progressing
-      expect(animatedContainer, findsOneWidget);
+      expect(celebrationContainer, findsOneWidget);
     });
 
     testWidgets('MilestoneCelebration color transitions work', (WidgetTester tester) async {
@@ -65,8 +65,8 @@ void main() {
 
       await tester.pump();
       
-      // Check for color animation container
-      final colorContainer = find.byType(AnimatedContainer);
+      // Check for celebration container with color animation
+      final colorContainer = find.byKey(const Key('celebration_container'));
       expect(colorContainer, findsOneWidget);
       
       // Pump through color transition
@@ -170,7 +170,7 @@ void main() {
       );
 
       // Monitor frame rendering during animation
-      final frameCount = tester.binding.transientCallbackCount;
+      // Note: transientCallbackCount helps verify animation performance
       
       // Pump several frames quickly to simulate animation
       for (int i = 0; i < 10; i++) {
@@ -200,7 +200,6 @@ void main() {
     });
 
     testWidgets('MilestoneCelebration can be interrupted and restarted', (WidgetTester tester) async {
-      bool firstAnimationCompleted = false;
       bool secondAnimationCompleted = false;
       
       // Start first animation
@@ -210,7 +209,7 @@ void main() {
             body: MilestoneCelebration(
               milestoneAmount: 90000,
               onComplete: () {
-                firstAnimationCompleted = true;
+                // First animation callback (not tracked)
               },
             ),
           ),

@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'services/performance_service.dart';
+import 'services/logger_service.dart';
 
 void main() {
+  // Initialize Flutter bindings first
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize logger with environment settings
+  LoggerService.initialize();
+  
+  // Enable frame rate monitoring in debug mode
+  PerformanceService.monitorFrameRate();
+  
+  // Start memory monitoring
+  PerformanceService.startMemoryMonitoring();
+  
   runApp(const SavingsApp());
 }
 

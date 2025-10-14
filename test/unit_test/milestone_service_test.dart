@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:one_touch_savings/models/savings_result.dart';
 import 'package:one_touch_savings/services/database_service.dart';
 
 void main() {

@@ -1,8 +1,7 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../../lib/services/database_service.dart';
-import '../../lib/models/user_progress.dart';
-import '../../lib/models/savings_result.dart';
+import 'package:one_touch_savings/services/database_service.dart';
 
 void main() {
   late DatabaseService databaseService;
@@ -211,27 +210,46 @@ void main() {
       });
 
       test('should persist calculation state across database sessions', () async {
-        // First session - save money
-        await databaseService.saveMoney();
-        await databaseService.saveMoney();
+        // Use a temporary file database for this test (not in-memory)
+        final tempDbPath = '/tmp/test_persistence_${DateTime.now().millisecondsSinceEpoch}.db';
+        DatabaseService.useCustomTestDatabase(tempDbPath);
         
-        final firstProgress = await databaseService.getCurrentProgress();
-        expect(firstProgress.totalSavings, equals(2000));
-        
-        // Simulate app restart by closing and reopening database
-        await DatabaseService.closeDatabase();
-        
-        // Second session - verify persistence
-        final secondProgress = await databaseService.getCurrentProgress();
-        expect(secondProgress.totalSavings, equals(2000));
-        expect(secondProgress.totalSessions, equals(2));
-        
-        // Add more saves in second session
-        await databaseService.saveMoney();
-        
-        final finalProgress = await databaseService.getCurrentProgress();
-        expect(finalProgress.totalSavings, equals(3000));
-        expect(finalProgress.totalSessions, equals(3));
+        try {
+          // First session - save money
+          await databaseService.saveMoney();
+          await databaseService.saveMoney();
+          
+          final firstProgress = await databaseService.getCurrentProgress();
+          expect(firstProgress.totalSavings, equals(2000));
+          
+          // Simulate app restart by closing and reopening database
+          await DatabaseService.closeDatabase();
+          
+          // Second session - verify persistence
+          final secondProgress = await databaseService.getCurrentProgress();
+          expect(secondProgress.totalSavings, equals(2000));
+          expect(secondProgress.totalSessions, equals(2));
+          
+          // Add more saves in second session
+          await databaseService.saveMoney();
+          
+          final finalProgress = await databaseService.getCurrentProgress();
+          expect(finalProgress.totalSavings, equals(3000));
+          expect(finalProgress.totalSessions, equals(3));
+        } finally {
+          // Cleanup - close database and delete temp file
+          await DatabaseService.closeDatabase();
+          try {
+            final tempFile = File(tempDbPath);
+            if (await tempFile.exists()) {
+              await tempFile.delete();
+            }
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+          // Restore in-memory database for other tests
+          DatabaseService.useTestDatabase();
+        }
       });
 
       test('should calculate accurate session averages and trends', () async {

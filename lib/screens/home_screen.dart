@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import '../widgets/savings_button.dart';
-import '../widgets/progress_display.dart';
-import '../widgets/milestone_celebration.dart';
-import '../services/database_service.dart';
-import '../services/feedback_service.dart';
-import '../services/logger_service.dart';
 import '../models/user_progress.dart';
-import '../models/savings_result.dart';
+import '../services/database_service.dart';
+import '../services/logger_service.dart';
+import '../services/feedback_service.dart';
+import '../widgets/progress_display.dart';
+import '../widgets/savings_button.dart';
+import '../widgets/milestone_celebration.dart';
 import '../utils/korean_number_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,8 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   bool _isLoading = false;
   String? _errorMessage;
-  bool _showingCelebration = false;
-  int? _celebrationMilestone;
+  int? _currentMilestone; // Track current milestone being shown
 
   @override
   void initState() {
@@ -68,13 +66,15 @@ class _HomeScreenState extends State<HomeScreen> {
       
       if (result.success) {
         // Update progress state
-        setState(() {
-          _progress = _progress.copyWith(
-            totalSavings: result.newTotal,
-            totalSessions: _progress.totalSessions + 1,
-            todaySessionCount: result.todayCount,
-          );
-        });
+        if (mounted) {
+          setState(() {
+            _progress = _progress.copyWith(
+              totalSavings: result.newTotal,
+              totalSessions: _progress.totalSessions + 1,
+              todaySessionCount: result.todayCount,
+            );
+          });
+        }
 
         // Log success
         LoggerService.logSaveSuccess(result.newTotal, result.todayCount);
@@ -83,71 +83,59 @@ class _HomeScreenState extends State<HomeScreen> {
         await FeedbackService.saveSuccess();
 
         // Check for milestones
+        LoggerService.logDatabaseOperation('Checking milestones from saveMoney result', {
+          'milestonesHit': result.milestonesHit,
+          'milestonesHitLength': result.milestonesHit.length,
+        });
+        
         if (result.milestonesHit.isNotEmpty) {
           LoggerService.logMilestone(result.milestonesHit);
           
-          // Get the highest milestone for celebration
+          // Show milestone celebration for the highest milestone
           final highestMilestone = result.milestonesHit.reduce((a, b) => a > b ? a : b);
+          LoggerService.logDatabaseOperation('Setting milestone celebration', {
+            'highestMilestone': highestMilestone,
+            'currentMilestone': _currentMilestone,
+          });
           
-          // Show celebration overlay first
-          _showMilestoneCelebration(highestMilestone);
+          if (mounted) {
+            setState(() {
+              _currentMilestone = highestMilestone;
+            });
+          }
           
           // Start enhanced milestone feedback synchronized with animation
           FeedbackService.milestoneWithAnimation(
             animationDuration: const Duration(milliseconds: 2300),
           );
+        } else {
+          // No milestones hit
         }
       } else {
         final errorMessage = result.error ?? 'Save failed';
         LoggerService.logSaveError(errorMessage);
-        setState(() {
-          _errorMessage = errorMessage;
-        });
+        if (mounted) {
+          setState(() {
+            _errorMessage = errorMessage;
+          });
+        }
         await FeedbackService.error();
       }
     } catch (e) {
       LoggerService.error('Unexpected error during save operation', e);
-      setState(() {
-        _errorMessage = 'Unexpected error occurred';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Unexpected error occurred';
+        });
+      }
       await FeedbackService.error();
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-  }
-
-  void _showMilestoneCelebration(int milestoneAmount) {
-    setState(() {
-      _showingCelebration = true;
-      _celebrationMilestone = milestoneAmount;
-    });
-  }
-
-  void _onCelebrationComplete() {
-    setState(() {
-      _showingCelebration = false;
-      _celebrationMilestone = null;
-    });
-  }
-
-  void _showMilestoneDialog(List<int> milestones) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('🎉 목표 달성!'),
-        content: Text(
-          '축하합니다! ${milestones.map((m) => KoreanNumberFormatter.formatMilestoneMessage(m)).join('\n')}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('훌륭해요!'),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildStatColumn(String label, String value, IconData icon) {
@@ -181,129 +169,138 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            title: const Text('One-Touch Savings'),
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          ),
-          body: SafeArea(
-            child: Padding(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('One-Touch Savings'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Enhanced Progress Display with Animation
-                  ProgressDisplay(
-                    currentAmount: _progress.totalSavings,
-                    targetAmount: KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
-                    showAnimation: true,
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Quick Stats Card
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatColumn(
-                            '오늘',
-                            '${_progress.todaySessionCount}회',
-                            Icons.today,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                        // Enhanced Progress Display with Animation
+                        ProgressDisplay(
+                          currentAmount: _progress.totalSavings,
+                          targetAmount: KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                          showAnimation: true,
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Quick Stats Card
+                        Card(
+                          child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatColumn(
+                                '오늘',
+                                '${_progress.todaySessionCount}회',
+                                Icons.today,
+                              ),
+                              _buildStatColumn(
+                                '총 저축',
+                                '${_progress.totalSessions}회',
+                                Icons.savings,
+                              ),
+                              _buildStatColumn(
+                                '연속 기록',
+                                '${_progress.currentStreak}일',
+                                Icons.local_fire_department,
+                              ),
+                            ],
                           ),
-                          _buildStatColumn(
-                            '총 저축',
-                            '${_progress.totalSessions}회',
-                            Icons.savings,
                           ),
-                          _buildStatColumn(
-                            '연속 기록',
-                            '${_progress.currentStreak}일',
-                            Icons.local_fire_department,
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Progress Message
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Progress Message
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      KoreanNumberFormatter.formatProgressMessage(
-                        _progress.totalSavings,
-                        KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blue,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  
-                  const Spacer(),
+                          child: Text(
+                            KoreanNumberFormatter.formatProgressMessage(
+                              _progress.totalSavings,
+                              KoreanNumberFormatter.getNextMilestone(_progress.totalSavings),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 40), // Replace Spacer
 
-                  // Error Message
-                  if (_errorMessage != null)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(_errorMessage!)),
-                        ],
-                      ),
-                    ),
+                        // Error Message
+                        if (_errorMessage != null)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(_errorMessage!)),
+                              ],
+                            ),
+                          ),
 
-                  // Save Button
-                  SavingsButton(
-                    onPressed: _handleSave,
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Button Label
-                  Text(
-                    _isLoading ? '저장 중...' : '터치해서 ₩1,000 저축하기',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  
-                  const Spacer(),
-                ],
-              ),
-            ),
-          ),
-        ),
-        
-        // Milestone Celebration Overlay
-        if (_showingCelebration && _celebrationMilestone != null)
-          MilestoneCelebrationOverlay(
-            milestoneAmount: _celebrationMilestone!,
-            onComplete: _onCelebrationComplete,
-          ),
-      ],
-    );
-  }
+                        // Save Button
+                        SavingsButton(
+                          key: const Key('savings_button'),
+                          onPressed: _handleSave,
+                        ),
+                        
+                        const SizedBox(height: 16),
+                         
+                         // Button Label
+                         Text(
+                           _isLoading ? '저장 중...' : '터치해서 ₩1,000 저축하기',
+                           style: const TextStyle(
+                             fontSize: 16,
+                             fontWeight: FontWeight.w500,
+                           ),
+                         ),
+                       
+                       const SizedBox(height: 50), // Replace Spacer with SizedBox
+                     ],
+                   ),
+                 ),
+               ),
+             
+             // Milestone Celebration Overlay
+             if (_currentMilestone != null)
+               MilestoneCelebration(
+                 milestoneAmount: _currentMilestone!,
+                  onComplete: () {
+                    if (mounted) {
+                      setState(() {
+                        _currentMilestone = null;
+                      });
+                    }
+                  },
+               ),
+           ],
+         ),
+       ),
+     );
+   }
 }

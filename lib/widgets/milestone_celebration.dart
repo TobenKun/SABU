@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:one_touch_savings/utils/korean_number_formatter.dart';
 
@@ -8,81 +7,102 @@ class MilestoneCelebration extends StatefulWidget {
   final VoidCallback onComplete;
 
   const MilestoneCelebration({
-    Key? key,
+    super.key,
     required this.milestoneAmount,
     required this.onComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<MilestoneCelebration> createState() => _MilestoneCelebrationState();
 }
 
 class _MilestoneCelebrationState extends State<MilestoneCelebration>
-    with TickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late AnimationController _colorController;
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
   late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
     
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    
-    _colorController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+    // Use a single controller for better performance
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2300),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.elasticOut,
-    ));
+    // Define intervals for different animation phases
+    const double scaleStart = 0.0;
+    const double scaleEnd = 0.35;
+    const double colorStart = 0.0;
+    const double colorEnd = 0.43;
+    const double holdEnd = 0.65;
+    const double fadeStart = 0.65;
+    const double fadeEnd = 1.0;
 
-    _colorAnimation = ColorTween(
-      begin: Colors.blue[600],
-      end: Colors.green[600],
-    ).animate(CurvedAnimation(
-      parent: _colorController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: scaleEnd - scaleStart,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween<double>(1.2),
+        weight: holdEnd - scaleEnd,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.2, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeInBack)),
+        weight: fadeEnd - holdEnd,
+      ),
+    ]).animate(_controller);
 
-    // Start animations
+    _colorAnimation = TweenSequence<Color?>([
+      TweenSequenceItem(
+        tween: ColorTween(
+          begin: Colors.blue[600],
+          end: Colors.green[600],
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: colorEnd - colorStart,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween<Color?>(Colors.green[600]),
+        weight: fadeEnd - colorEnd,
+      ),
+    ]).animate(_controller);
+
+    _fadeAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: ConstantTween<double>(1.0),
+        weight: fadeStart,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: fadeEnd - fadeStart,
+      ),
+    ]).animate(_controller);
+
+    // Listen for animation completion
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onComplete();
+      }
+    });
+
+    // Start the celebration animation
     _startCelebration();
   }
 
-  void _startCelebration() async {
-    // Start scale and color animations simultaneously
-    final scaleAnimation = _scaleController.forward();
-    final colorAnimation = _colorController.forward();
-
-    // Wait for animations to complete
-    await Future.wait([
-      scaleAnimation,
-      colorAnimation,
-    ]);
-
-    // Hold the celebration for a moment
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Fade out
-    await _scaleController.reverse();
-
-    // Call completion callback
-    widget.onComplete();
+  void _startCelebration() {
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    _scaleController.dispose();
-    _colorController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -92,87 +112,77 @@ class _MilestoneCelebrationState extends State<MilestoneCelebration>
       label: '${KoreanNumberFormatter.formatCurrency(widget.milestoneAmount)} milestone achieved',
       child: Center(
         child: AnimatedBuilder(
-          animation: Listenable.merge([_scaleController, _colorController]),
+          animation: _controller,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: AnimatedContainer(
-                key: const Key('celebration_scale_animation'),
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: _colorAnimation.value?.withOpacity(0.9) ?? Colors.blue.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_colorAnimation.value ?? Colors.blue).withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  key: const Key('celebration_color_animation'),
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.celebration,
-                      size: 64,
-                      color: Colors.white,
-                    ).animate().scale(
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.elasticOut,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      KoreanNumberFormatter.formatCurrency(widget.milestoneAmount),
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        decoration: TextDecoration.none,
-                        fontFeatures: [FontFeature.tabularFigures()],
+            return Opacity(
+              opacity: _fadeAnimation.value,
+              child: Transform.scale(
+                scale: _scaleAnimation.value,
+                child: Container(
+                  key: const Key('celebration_container'),
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: (_colorAnimation.value ?? Colors.blue).withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_colorAnimation.value ?? Colors.blue).withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
                       ),
-                    ).animate().slideY(
-                      begin: 1,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOut,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'milestone achieved!',
-                      style: const TextStyle(
-                        fontSize: 18,
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.celebration,
+                        size: 64,
                         color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.none,
+                        key: Key('celebration_icon'),
                       ),
-                    ).animate().fadeIn(
-                      duration: const Duration(milliseconds: 600),
-                      delay: const Duration(milliseconds: 200),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '축하합니다! 🎉',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                        decoration: TextDecoration.none,
+                      const SizedBox(height: 16),
+                      Text(
+                        KoreanNumberFormatter.formatCurrency(widget.milestoneAmount),
+                        key: const Key('milestone_amount'),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          decoration: TextDecoration.none,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ).animate().fadeIn(
-                      duration: const Duration(milliseconds: 600),
-                      delay: const Duration(milliseconds: 400),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      const Text(
+                        'milestone achieved!',
+                        key: Key('milestone_text_en'),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '축하합니다! 🎉',
+                        key: Key('milestone_text_ko'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w400,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
           },
         ),
       ),
-    ).animate().fadeIn(
-      duration: const Duration(milliseconds: 300),
     );
   }
 }
@@ -183,16 +193,16 @@ class MilestoneCelebrationOverlay extends StatelessWidget {
   final VoidCallback onComplete;
 
   const MilestoneCelebrationOverlay({
-    Key? key,
+    super.key,
     required this.milestoneAmount,
     required this.onComplete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         child: MilestoneCelebration(
           milestoneAmount: milestoneAmount,
           onComplete: onComplete,
@@ -208,10 +218,10 @@ class MilestoneIndicator extends StatelessWidget {
   final int milestoneAmount;
 
   const MilestoneIndicator({
-    Key? key,
+    super.key,
     required this.isActive,
     required this.milestoneAmount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

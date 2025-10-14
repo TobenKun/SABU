@@ -5,9 +5,9 @@ class SavingsButton extends StatefulWidget {
   final VoidCallback onPressed;
   
   const SavingsButton({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   State<SavingsButton> createState() => _SavingsButtonState();
@@ -70,7 +70,7 @@ class _SavingsButtonState extends State<SavingsButton>
             color: _isPressed ? Colors.green : Colors.blue,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

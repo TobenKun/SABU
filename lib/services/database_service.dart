@@ -4,6 +4,7 @@ import '../models/savings_session.dart';
 import '../models/user_progress.dart';
 import '../models/savings_result.dart';
 import 'logger_service.dart';
+import 'performance_service.dart';
 
 enum DatabaseError {
   connectionFailed,
@@ -118,134 +119,146 @@ class DatabaseService {
   }
   
   Future<SavingsResult> saveMoney() async {
-    try {
-      LoggerService.logDatabaseOperation('Starting save money operation');
-      final db = await database;
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      
-      late UserProgress updatedProgress;
-      
-      await db.transaction((txn) async {
-        // Insert new session
-        await txn.insert('savings_sessions', {
-          'amount': 1000,
-          'timestamp': timestamp,
-        });
-        
-        // Update progress atomically
-        await txn.rawUpdate('''
-          UPDATE user_progress 
-          SET 
-            total_savings = total_savings + 1000,
-            total_sessions = total_sessions + 1,
-            today_session_count = CASE 
-              WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
-              THEN today_session_count + 1 
-              ELSE 1 
-            END,
-            last_save_date = ?,
-            current_streak = CASE
-              WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
-              THEN current_streak
-              WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
-              THEN current_streak + 1
-              ELSE 1
-            END,
-            longest_streak = MAX(longest_streak, 
-              CASE
-                WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
-                THEN current_streak
-                WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
-                THEN current_streak + 1
-                ELSE 1
-              END
-            )
-          WHERE id = 1
-        ''', [timestamp]);
-      });
-      
-      // Get updated progress
-      updatedProgress = await getCurrentProgress();
-      
-      // Check for milestones and update database
-      final previousTotal = updatedProgress.totalSavings - 1000;
-      final milestones = _detectMilestones(previousTotal, updatedProgress.totalSavings);
-      
-      // If milestones were achieved, update the database
-      if (milestones.isNotEmpty) {
-        await _updateMilestonesInDatabase(updatedProgress.milestones, milestones);
-        // Refresh progress to get updated milestones
-        updatedProgress = await getCurrentProgress();
-      }
-      
-      LoggerService.logDatabaseOperation('Save money operation completed', {
-        'newTotal': updatedProgress.totalSavings,
-        'todayCount': updatedProgress.todaySessionCount,
-        'milestones': milestones,
-      });
-      
-      return SavingsResult(
-        success: true,
-        newTotal: updatedProgress.totalSavings,
-        todayCount: updatedProgress.todaySessionCount,
-        milestonesHit: milestones,
-      );
-    } catch (e) {
-      LoggerService.error('Save money operation failed', e);
-      if (e is DatabaseException) rethrow;
-      
-      // Determine error type based on exception
-      DatabaseError errorType = DatabaseError.connectionFailed;
-      if (e.toString().contains('SQLITE_CONSTRAINT')) {
-        errorType = DatabaseError.constraintViolation;
-      } else if (e.toString().contains('disk')) {
-        errorType = DatabaseError.diskFull;
-      }
-      
-      throw DatabaseException(
-        errorType,
-        'Failed to save money: ${e.toString()}',
-        e,
-      );
-    }
+    return await PerformanceService.monitorDatabaseOperation(
+      'saveMoney',
+      () async {
+        try {
+          LoggerService.logDatabaseOperation('Starting save money operation');
+          final db = await database;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          
+          late UserProgress updatedProgress;
+          
+          await db.transaction((txn) async {
+            // Insert new session
+            await txn.insert('savings_sessions', {
+              'amount': 1000,
+              'timestamp': timestamp,
+            });
+            
+            // Update progress atomically
+            await txn.rawUpdate('''
+              UPDATE user_progress 
+              SET 
+                total_savings = total_savings + 1000,
+                total_sessions = total_sessions + 1,
+                today_session_count = CASE 
+                  WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
+                  THEN today_session_count + 1 
+                  ELSE 1 
+                END,
+                last_save_date = ?,
+                current_streak = CASE
+                  WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
+                  THEN current_streak
+                  WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
+                  THEN current_streak + 1
+                  ELSE 1
+                END,
+                longest_streak = MAX(longest_streak, 
+                  CASE
+                    WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
+                    THEN current_streak
+                    WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
+                    THEN current_streak + 1
+                    ELSE 1
+                  END
+                )
+              WHERE id = 1
+            ''', [timestamp]);
+          });
+          
+          // Get updated progress
+          updatedProgress = await getCurrentProgress();
+          
+          // Check for milestones and update database
+          final previousTotal = updatedProgress.totalSavings - 1000;
+          final milestones = _detectMilestones(previousTotal, updatedProgress.totalSavings);
+          
+          // If milestones were achieved, update the database
+          if (milestones.isNotEmpty) {
+            await _updateMilestonesInDatabase(updatedProgress.milestones, milestones);
+            // Refresh progress to get updated milestones
+            updatedProgress = await getCurrentProgress();
+          }
+          
+          LoggerService.logDatabaseOperation('Save money operation completed', {
+            'newTotal': updatedProgress.totalSavings,
+            'todayCount': updatedProgress.todaySessionCount,
+            'milestones': milestones,
+          });
+          
+          return SavingsResult(
+            success: true,
+            newTotal: updatedProgress.totalSavings,
+            todayCount: updatedProgress.todaySessionCount,
+            milestonesHit: milestones,
+          );
+        } catch (e) {
+          LoggerService.error('Save money operation failed', e);
+          if (e is DatabaseException) rethrow;
+          
+          // Determine error type based on exception
+          DatabaseError errorType = DatabaseError.connectionFailed;
+          if (e.toString().contains('SQLITE_CONSTRAINT')) {
+            errorType = DatabaseError.constraintViolation;
+          } else if (e.toString().contains('disk')) {
+            errorType = DatabaseError.diskFull;
+          }
+          
+          throw DatabaseException(
+            errorType,
+            'Failed to save money: ${e.toString()}',
+            e,
+          );
+        }
+      },
+      metadata: {'operation_type': 'save_money'},
+    );
   }
   
   Future<UserProgress> getCurrentProgress() async {
-    try {
-      final db = await database;
-      
-      final List<Map<String, dynamic>> result = await db.rawQuery('''
-        SELECT 
-          total_savings,
-          total_sessions,
-          CASE 
-            WHEN date(last_save_date/1000, 'unixepoch') = date('now')
-            THEN today_session_count
-            ELSE 0
-          END as today_session_count,
-          last_save_date,
-          current_streak,
-          longest_streak,
-          milestones
-        FROM user_progress 
-        WHERE id = 1
-      ''');
-      
-      if (result.isEmpty) {
-        // Initialize if missing
-        await _initializeProgress();
-        return UserProgress.empty();
-      }
-      
-      return UserProgress.fromMap(result.first);
-      
-    } catch (e) {
-      throw DatabaseException(
-        DatabaseError.connectionFailed,
-        'Failed to get current progress: ${e.toString()}',
-        e,
-      );
-    }
+    return await PerformanceService.monitorDatabaseOperation(
+      'getCurrentProgress',
+      () async {
+        try {
+          final db = await database;
+          
+          final List<Map<String, dynamic>> result = await db.rawQuery('''
+            SELECT 
+              total_savings,
+              total_sessions,
+              CASE 
+                WHEN date(last_save_date/1000, 'unixepoch') = date('now')
+                THEN today_session_count
+                ELSE 0
+              END as today_session_count,
+              last_save_date,
+              current_streak,
+              longest_streak,
+              milestones
+            FROM user_progress 
+            WHERE id = 1
+          ''');
+          
+          if (result.isEmpty) {
+            // Initialize if missing
+            await _initializeProgress();
+            return UserProgress.empty();
+          }
+          
+          return UserProgress.fromMap(result.first);
+          
+        } catch (e) {
+          throw DatabaseException(
+            DatabaseError.connectionFailed,
+            'Failed to get current progress: ${e.toString()}',
+            e,
+          );
+        }
+      },
+      metadata: {'operation_type': 'get_progress'},
+    );
   }
   
   Future<List<SavingsSession>> getSavingsHistory({
@@ -253,46 +266,56 @@ class DatabaseService {
     DateTime? endDate,
     int limit = 100,
   }) async {
-    try {
-      final db = await database;
-      
-      String whereClause = '';
-      List<dynamic> whereArgs = [];
-      
-      if (startDate != null || endDate != null) {
-        whereClause = 'WHERE ';
-        List<String> conditions = [];
-        
-        if (startDate != null) {
-          conditions.add('timestamp >= ?');
-          whereArgs.add(startDate.millisecondsSinceEpoch);
+    return await PerformanceService.monitorDatabaseOperation(
+      'getSavingsHistory',
+      () async {
+        try {
+          final db = await database;
+          
+          String whereClause = '';
+          List<dynamic> whereArgs = [];
+          
+          if (startDate != null || endDate != null) {
+            whereClause = 'WHERE ';
+            List<String> conditions = [];
+            
+            if (startDate != null) {
+              conditions.add('timestamp >= ?');
+              whereArgs.add(startDate.millisecondsSinceEpoch);
+            }
+            
+            if (endDate != null) {
+              conditions.add('timestamp <= ?');
+              whereArgs.add(endDate.millisecondsSinceEpoch);
+            }
+            
+            whereClause += conditions.join(' AND ');
+          }
+          
+          final List<Map<String, dynamic>> maps = await db.rawQuery('''
+            SELECT id, amount, timestamp
+            FROM savings_sessions
+            $whereClause
+            ORDER BY timestamp DESC
+            LIMIT ?
+          ''', [...whereArgs, limit]);
+          
+          return maps.map((map) => SavingsSession.fromMap(map)).toList();
+          
+        } catch (e) {
+          throw DatabaseException(
+            DatabaseError.connectionFailed,
+            'Failed to get savings history: ${e.toString()}',
+            e,
+          );
         }
-        
-        if (endDate != null) {
-          conditions.add('timestamp <= ?');
-          whereArgs.add(endDate.millisecondsSinceEpoch);
-        }
-        
-        whereClause += conditions.join(' AND ');
-      }
-      
-      final List<Map<String, dynamic>> maps = await db.rawQuery('''
-        SELECT id, amount, timestamp
-        FROM savings_sessions
-        $whereClause
-        ORDER BY timestamp DESC
-        LIMIT ?
-      ''', [...whereArgs, limit]);
-      
-      return maps.map((map) => SavingsSession.fromMap(map)).toList();
-      
-    } catch (e) {
-      throw DatabaseException(
-        DatabaseError.connectionFailed,
-        'Failed to get savings history: ${e.toString()}',
-        e,
-      );
-    }
+      },
+      metadata: {
+        'operation_type': 'get_history',
+        'limit': limit,
+        'has_date_filter': startDate != null || endDate != null,
+      },
+    );
   }
   
   Future<void> resetUserData() async {
@@ -331,11 +354,23 @@ class DatabaseService {
     final oldMilestones = (oldTotal / 10000).floor();
     final newMilestones = (newTotal / 10000).floor();
     
+    LoggerService.logDatabaseOperation('Milestone detection', {
+      'oldTotal': oldTotal,
+      'newTotal': newTotal,
+      'oldMilestones': oldMilestones,
+      'newMilestones': newMilestones,
+      'willDetect': newMilestones > oldMilestones,
+    });
+    
     if (newMilestones > oldMilestones) {
-      return List.generate(
+      final milestones = List.generate(
         newMilestones - oldMilestones,
         (i) => (oldMilestones + i + 1) * 10000,
       );
+      LoggerService.logDatabaseOperation('Milestones detected', {
+        'milestones': milestones,
+      });
+      return milestones;
     }
     return [];
   }
@@ -401,6 +436,11 @@ class DatabaseService {
   // For test isolation - use in-memory database
   static void useTestDatabase() {
     _testDbPath = ':memory:';
+  }
+  
+  // For test isolation - use custom test database path
+  static void useCustomTestDatabase(String path) {
+    _testDbPath = path;
   }
   
   // For test isolation - reset to normal database
