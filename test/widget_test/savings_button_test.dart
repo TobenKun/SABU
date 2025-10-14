@@ -5,13 +5,11 @@ import 'package:one_touch_savings/widgets/savings_button.dart';
 void main() {
   group('SavingsButton Widget Tests', () {
     testWidgets('should render savings button correctly', (WidgetTester tester) async {
-      bool callbackTriggered = false;
-      
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SavingsButton(
-              onPressed: () => callbackTriggered = true,
+              onPressed: () {},
             ),
           ),
         ),
@@ -89,7 +87,9 @@ void main() {
       // Rapid double tap
       await tester.tap(find.byType(SavingsButton));
       await tester.tap(find.byType(SavingsButton));
-      await tester.pump();
+      
+      // Wait for debounce timer to complete (50ms + some buffer)
+      await tester.pump(const Duration(milliseconds: 100));
       
       // Should only register one tap due to debouncing
       expect(tapCount, equals(1));

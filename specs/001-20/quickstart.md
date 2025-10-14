@@ -14,12 +14,22 @@ cd one_touch_savings
 ### 2. Add Dependencies
 ```yaml
 # pubspec.yaml
+name: one_touch_savings
+description: A Flutter app for one-touch savings functionality
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.16.0"
+
 dependencies:
   flutter:
     sdk: flutter
   sqflite: ^2.3.0
   flutter_animate: ^4.2.0+1
   intl: ^0.18.1
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +37,7 @@ dev_dependencies:
   sqflite_common_ffi: ^2.3.0+2
   integration_test:
     sdk: flutter
+  flutter_lints: ^3.0.0
 ```
 
 ### 3. Project Structure
@@ -35,16 +46,21 @@ lib/
 ├── main.dart
 ├── models/
 │   ├── savings_session.dart
+│   ├── savings_result.dart
 │   └── user_progress.dart  
 ├── services/
 │   ├── database_service.dart
 │   ├── feedback_service.dart
-│   └── savings_service.dart
+│   ├── logger_service.dart
+│   └── performance_service.dart
 ├── screens/
 │   └── home_screen.dart
-└── widgets/
-    ├── savings_button.dart
-    └── progress_display.dart
+├── widgets/
+│   ├── savings_button.dart
+│   ├── progress_display.dart
+│   └── milestone_celebration.dart
+└── utils/
+    └── korean_number_formatter.dart
 
 test/
 ├── widget_test/
@@ -350,13 +366,27 @@ class ProgressDisplay extends StatelessWidget {
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'services/performance_service.dart';
+import 'services/logger_service.dart';
 
 void main() {
+  // Initialize Flutter bindings first
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize logger with environment settings
+  LoggerService.initialize();
+  
+  // Enable frame rate monitoring in debug mode
+  PerformanceService.monitorFrameRate();
+  
+  // Start memory monitoring
+  PerformanceService.startMemoryMonitoring();
+  
   runApp(const SavingsApp());
 }
 
 class SavingsApp extends StatelessWidget {
-  const SavingsApp({Key? key}) : super(key: key);
+  const SavingsApp({super.key});
   
   @override
   Widget build(BuildContext context) {
@@ -365,8 +395,16 @@ class SavingsApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(200, 60),
+            textStyle: const TextStyle(fontSize: 18),
+          ),
+        ),
       ),
       home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

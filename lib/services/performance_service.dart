@@ -228,6 +228,38 @@ class PerformanceService {
     });
   }
   
+  /// Track animation frame timing
+  static void trackAnimationFrame(String animationName, Duration duration) {
+    if (!kDebugMode) return;
+    
+    final durationMs = duration.inMilliseconds;
+    const targetFrameMs = 16; // 60fps = ~16.67ms per frame
+    
+    final logData = {
+      'animation': animationName,
+      'duration_ms': durationMs,
+      'target_ms': targetFrameMs,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+    
+    if (durationMs > targetFrameMs * 2) {
+      LoggerService.logPerformanceIssue(
+        'Slow animation: $animationName took ${durationMs}ms (target: ${targetFrameMs}ms)',
+        logData,
+      );
+    } else if (durationMs > targetFrameMs) {
+      LoggerService.logPerformanceWarning(
+        'Animation frame drop: $animationName took ${durationMs}ms (target: ${targetFrameMs}ms)',
+        logData,
+      );
+    } else {
+      LoggerService.logPerformanceSuccess(
+        'Animation completed smoothly: $animationName (${durationMs}ms)',
+        logData,
+      );
+    }
+  }
+  
   /// Force garbage collection to free memory
   static Future<void> _forceGarbageCollection() async {
     // Request multiple garbage collection cycles

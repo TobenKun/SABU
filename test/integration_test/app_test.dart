@@ -120,24 +120,27 @@ void main() {
         expect(progress.totalSessions, equals(3));
       }
       
-      // Simulate restart by creating new widget tree
+      // Simulate restart by creating new widget tree and new database service
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
+      
+      // Create a new database service instance to simulate app restart
+      final newDatabaseService = DatabaseService();
       
       // Data should persist
       if (savingsButtonFinder.evaluate().isNotEmpty) {
         await tester.ensureVisible(savingsButtonFinder);
         
-        // Verify persistence
-        var progress = await databaseService.getCurrentProgress();
+        // Verify persistence with new database service
+        var progress = await newDatabaseService.getCurrentProgress();
         expect(progress.totalSavings, equals(3000));
         
         // Add one more save
         await tester.tap(savingsButtonFinder);
-        await tester.pump();
+        await tester.pumpAndSettle(); // Wait for async operations
         
         // Verify updated total
-        progress = await databaseService.getCurrentProgress();
+        progress = await newDatabaseService.getCurrentProgress();
         expect(progress.totalSavings, equals(4000));
         expect(progress.totalSessions, equals(4));
       }
@@ -182,7 +185,7 @@ void main() {
           await tester.ensureVisible(savingsButtonFinder);
           
           await tester.tap(savingsButtonFinder);
-          await tester.pump();
+          await tester.pumpAndSettle(); // Wait for async operations to complete
           
           // Verify progress is tracked correctly
           final progress = await databaseService.getCurrentProgress();

@@ -20,7 +20,8 @@ void main() {
 
       // Check if milestone amount is displayed
       expect(find.text('₩10,000'), findsOneWidget);
-      expect(find.text('milestone achieved!'), findsOneWidget);
+      expect(find.text('축하합니다!'), findsOneWidget);
+      expect(find.text('달성!'), findsOneWidget);
     });
 
     testWidgets('MilestoneCelebration triggers scale animation', (WidgetTester tester) async {
@@ -110,7 +111,8 @@ void main() {
       );
 
       expect(find.text('₩50,000'), findsOneWidget);
-      expect(find.text('milestone achieved!'), findsOneWidget);
+      expect(find.text('축하합니다!'), findsOneWidget);
+      expect(find.text('달성!'), findsOneWidget);
     });
 
     testWidgets('MilestoneCelebration animation duration is correct', (WidgetTester tester) async {
@@ -152,8 +154,8 @@ void main() {
         ),
       );
 
-      // Check for semantic labels
-      expect(find.bySemanticsLabel(RegExp('milestone.*achieved')), findsOneWidget);
+      // Check for semantic labels - actual format is "₩XX,XXX milestone achieved"
+      expect(find.bySemanticsLabel(RegExp('₩70,000 milestone achieved')), findsOneWidget);
     });
 
     testWidgets('MilestoneCelebration maintains 60fps during animation', (WidgetTester tester) async {
