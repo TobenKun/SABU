@@ -317,7 +317,7 @@ void main() {
         final errorTypes = [
           ArgumentError('Invalid argument'),
           StateError('Invalid state'),
-          FormatException('Format error'),
+          const FormatException('Format error'),
           TypeError(),
         ];
         

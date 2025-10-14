@@ -10,13 +10,13 @@ class ProgressDisplay extends StatefulWidget {
   final VoidCallback? onAnimationComplete;
 
   const ProgressDisplay({
-    Key? key,
+    super.key,
     required this.currentAmount,
     required this.targetAmount,
     this.showAnimation = true,
     this.animationDuration = const Duration(milliseconds: 800),
     this.onAnimationComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<ProgressDisplay> createState() => _ProgressDisplayState();
@@ -221,7 +221,7 @@ void main() {
   group('ProgressDisplay Widget Tests', () {
     testWidgets('should display initial state correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 3000,
@@ -324,7 +324,7 @@ void main() {
 
     testWidgets('should handle zero and edge cases', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 0,
@@ -342,7 +342,7 @@ void main() {
 
     testWidgets('should handle 100% completion', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 10000,
@@ -368,7 +368,7 @@ void main() {
 
     testWidgets('should handle over 100% correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 15000,
@@ -394,7 +394,7 @@ void main() {
 
     testWidgets('should handle zero target gracefully', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 5000,
@@ -412,13 +412,13 @@ void main() {
 
     testWidgets('should use correct animation curves', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 5000,
               targetAmount: 10000,
               showAnimation: true,
-              animationDuration: const Duration(milliseconds: 1000),
+              animationDuration: Duration(milliseconds: 1000),
             ),
           ),
         ),
@@ -445,7 +445,7 @@ void main() {
 
     testWidgets('should format large numbers correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 1234567,
@@ -463,7 +463,7 @@ void main() {
 
     testWidgets('should dispose controllers properly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ProgressDisplay(
               currentAmount: 3000,

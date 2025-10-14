@@ -27,7 +27,7 @@ void main() {
   tearDown(() async {
     await DatabaseService.closeDatabase();
     // Clear the static database instance to force fresh DB for each test
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
   });
 
   group('DatabaseService', () {
@@ -165,9 +165,9 @@ void main() {
       test('should track savings history with detailed analytics', () async {
         // Create test data with specific timestamps
         await databaseService.saveMoney();
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         await databaseService.saveMoney();
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         await databaseService.saveMoney();
         
         final history = await databaseService.getSavingsHistory();
@@ -186,8 +186,8 @@ void main() {
 
       test('should handle date-filtered history queries', () async {
         final now = DateTime.now();
-        final yesterday = now.subtract(Duration(days: 1));
-        final tomorrow = now.add(Duration(days: 1));
+        final yesterday = now.subtract(const Duration(days: 1));
+        final tomorrow = now.add(const Duration(days: 1));
         
         // Create saves
         await databaseService.saveMoney();
