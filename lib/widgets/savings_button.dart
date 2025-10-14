@@ -18,16 +18,24 @@ class _SavingsButtonState extends State<SavingsButton>
     with TickerProviderStateMixin {
   bool _isPressed = false;
   bool _isProcessing = false;
+  bool _showGreenEffect = false;
+  bool _showScaleEffect = false;
   DateTime? _lastTapTime;
   Timer? _debounceTimer;
+  Timer? _greenEffectTimer;
+  Timer? _scaleEffectTimer;
   
   // Aggressive debouncing for rapid taps while maintaining responsiveness
   static const Duration _minTapInterval = Duration(milliseconds: 150);
   static const Duration _debounceDelay = Duration(milliseconds: 50);
+  static const Duration _greenEffectDuration = Duration(milliseconds: 120);
+  static const Duration _scaleEffectDuration = Duration(milliseconds: 150);
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _greenEffectTimer?.cancel();
+    _scaleEffectTimer?.cancel();
     super.dispose();
   }
 
@@ -44,12 +52,40 @@ class _SavingsButtonState extends State<SavingsButton>
     setState(() {
       _isPressed = false;
     });
+    
+    // Start green effect and scale animation for short taps
+    setState(() {
+      _showGreenEffect = true;
+      _showScaleEffect = true;
+    });
+    
+    _greenEffectTimer?.cancel();
+    _greenEffectTimer = Timer(_greenEffectDuration, () {
+      if (mounted) {
+        setState(() {
+          _showGreenEffect = false;
+        });
+      }
+    });
+    
+    _scaleEffectTimer?.cancel();
+    _scaleEffectTimer = Timer(_scaleEffectDuration, () {
+      if (mounted) {
+        setState(() {
+          _showScaleEffect = false;
+        });
+      }
+    });
   }
 
   void _handleTapCancel() {
     setState(() {
       _isPressed = false;
+      _showGreenEffect = false;
+      _showScaleEffect = false;
     });
+    _greenEffectTimer?.cancel();
+    _scaleEffectTimer?.cancel();
   }
 
   void _handleTap() {
@@ -103,9 +139,9 @@ class _SavingsButtonState extends State<SavingsButton>
         onTapCancel: _handleTapCancel,
         onTap: _handleTap,
         child: AnimatedScale(
-          scale: _isPressed ? 0.9 : 1.0,
-          duration: const Duration(milliseconds: 100), // Faster for better responsiveness
-          curve: Curves.easeOutQuart, // More performant curve
+          scale: (_isPressed || _showScaleEffect) ? 0.9 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOutQuart,
           child: Container(
             width: 200,
             height: 200,
@@ -113,7 +149,7 @@ class _SavingsButtonState extends State<SavingsButton>
               shape: BoxShape.circle,
               color: _isProcessing 
                 ? Colors.grey 
-                : (_isPressed ? Colors.green : Colors.blue),
+                : (_isPressed || _showGreenEffect ? Colors.green : Colors.blue),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.3),
