@@ -1,50 +1,99 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report - Constitution v1.0.0 (Initial Creation)
+Generated: 2025-10-13
+
+Version Change: none → 1.0.0 (MAJOR - Initial constitution establishment)
+
+Added Principles:
+- Code Quality Standards (Principle 1)
+- Testing First (Principle 2)
+- User Experience Consistency (Principle 3)
+- Performance Requirements (Principle 4)
+- Documentation Driven (Principle 5)
+
+Added Sections:
+- Quality Gates (Section 2)
+- Development Workflow (Section 3)
+- Governance
+
+Templates Status:
+✅ .specify/templates/plan-template.md - Constitution Check section aligns
+✅ .specify/templates/spec-template.md - Requirements alignment confirmed
+✅ .specify/templates/tasks-template.md - Task categorization supports all principles
+✅ .opencode/command/*.md - No agent-specific references need updating
+
+Follow-up TODOs: None - all placeholders resolved
+-->
+
+# Sabu Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality Standards
+All code MUST pass automated quality checks before merge. This includes linting, 
+formatting, type checking, and complexity analysis. Code reviews MUST verify 
+adherence to established patterns and maintainability standards. No exceptions 
+permitted for "quick fixes" or urgent releases.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Testing First (NON-NEGOTIABLE)
+TDD mandatory: Tests written → User approved → Tests fail → Then implement. 
+Red-Green-Refactor cycle strictly enforced. Minimum 80% code coverage required. 
+All user stories MUST have corresponding integration tests that verify end-to-end 
+functionality.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. User Experience Consistency
+All user interfaces MUST follow established patterns and workflows. CLI commands 
+MUST use consistent argument patterns and output formats. Documentation MUST 
+maintain uniform structure and terminology. No feature ships without UX review 
+against existing patterns.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Performance Requirements
+All endpoints MUST respond within 200ms for 95th percentile. Database queries 
+MUST be optimized and indexed appropriately. Memory usage MUST be profiled and 
+bounded. Performance tests MUST be included for all user-facing features with 
+measurable criteria.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Documentation Driven
+Specifications MUST be complete and approved before implementation begins. All 
+APIs MUST have contract documentation. User-facing features MUST include 
+quickstart guides. Code changes MUST update relevant documentation in the same PR.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Quality Gates
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+All features MUST pass these gates before deployment:
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- Constitution compliance verification
+- Automated test suite passing (unit, integration, contract)
+- Code quality metrics within thresholds
+- Performance benchmarks meeting requirements
+- Documentation completeness review
+- UX consistency audit
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+
+### Feature Development Process
+1. Specification creation and approval (`/speckit.specify`)
+2. Implementation planning with constitution check (`/speckit.plan`)
+3. Task breakdown with testing requirements (`/speckit.tasks`)
+4. TDD implementation cycle
+5. Quality gate validation
+6. Review and merge
+
+### Review Requirements
+- All PRs MUST verify constitution compliance
+- Performance impact MUST be assessed
+- UX consistency MUST be validated
+- Documentation MUST be updated
+- Tests MUST demonstrate feature completeness
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices and guidelines. 
+Amendments require documentation, stakeholder approval, and migration plan for 
+existing code. All development decisions MUST reference constitutional principles 
+when trade-offs arise.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Complexity and exceptions MUST be justified against constitutional principles. 
+Use `.specify/templates/` guidance for runtime development workflows.
+
+**Version**: 1.0.0 | **Ratified**: 2025-10-13 | **Last Amended**: 2025-10-13
