@@ -12,11 +12,16 @@
 # Android specific
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
+**/android/.kotlin
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/app/.cxx/
+**/android/build/
 
 # iOS/XCode specific
 **/ios/**/*.mode1v3
