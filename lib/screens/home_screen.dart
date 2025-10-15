@@ -65,15 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await _databaseService.saveMoney();
       
       if (result.success) {
-        // Update progress state
+        // Reload full progress data to ensure streak information is updated
         if (mounted) {
-          setState(() {
-            _progress = _progress.copyWith(
-              totalSavings: result.newTotal,
-              totalSessions: _progress.totalSessions + 1,
-              todaySessionCount: result.todayCount,
-            );
-          });
+          await _loadProgress();
         }
 
         // Log success

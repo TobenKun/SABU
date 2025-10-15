@@ -19,7 +19,7 @@ Flutter mobile app with SQLite local storage enabling users to save 1000원 per 
 
 ## Technical Context
 
-**Language/Version**: Dart 3.0+ / Flutter 3.16+  
+**Language/Version**: Dart 3.0+ / Flutter 3.16+ / Android Gradle Plugin 8.6.0+ / Kotlin 2.1.0+  
 **Primary Dependencies**: sqflite (SQLite), flutter/services (haptic feedback), NEEDS CLARIFICATION (animation libraries)  
 **Storage**: SQLite local database via sqflite package  
 **Testing**: flutter_test (unit), integration_test (E2E), NEEDS CLARIFICATION (widget testing strategy)  
