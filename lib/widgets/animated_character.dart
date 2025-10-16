@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/animation_state.dart';
 
@@ -22,6 +23,7 @@ class _AnimatedTurtleSpriteState extends State<AnimatedTurtleSprite>
   late AnimationController _animationController;
   List<String> _currentFrames = [];
   Map<String, List<String>> _preloadedFrames = {};
+  Timer? _idleTimer;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _AnimatedTurtleSpriteState extends State<AnimatedTurtleSprite>
   @override
   void dispose() {
     _animationController.dispose();
+    _idleTimer?.cancel();
     super.dispose();
   }
 
@@ -75,15 +78,11 @@ class _AnimatedTurtleSpriteState extends State<AnimatedTurtleSprite>
     _animationController.duration = duration;
 
     if (widget.level == TurtleAnimationLevel.idle) {
-      // For idle, play once and stop on the first frame
-      _animationController.reset();
-      _animationController.forward().then((_) {
-        if (mounted) {
-          _animationController.reset();
-        }
-      });
+      // For idle, play once then wait 3 seconds before repeating
+      _startIdleAnimation();
     } else {
       // For walking/running, loop continuously
+      _idleTimer?.cancel();
       _animationController.repeat();
     }
   }
@@ -114,6 +113,22 @@ class _AnimatedTurtleSpriteState extends State<AnimatedTurtleSprite>
       case TurtleAnimationLevel.runFast:
         return const Duration(milliseconds: 150); // Fast run
     }
+  }
+
+  void _startIdleAnimation() {
+    _idleTimer?.cancel();
+    _animationController.reset();
+    _animationController.forward().then((_) {
+      if (mounted && widget.level == TurtleAnimationLevel.idle) {
+        _animationController.reset();
+        // Wait 3 seconds before starting the next cycle
+        _idleTimer = Timer(const Duration(seconds: 3), () {
+          if (mounted && widget.level == TurtleAnimationLevel.idle) {
+            _startIdleAnimation();
+          }
+        });
+      }
+    });
   }
 
   @override

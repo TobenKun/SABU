@@ -1,9 +1,9 @@
 enum TurtleAnimationLevel {
-  idle(1),           // 16+ hours inactivity
-  walkSlow(2),       // 8-16 hours inactivity  
-  walkFast(3),       // 4-8 hours inactivity
-  runSlow(4),        // 2-4 hours inactivity
-  runFast(5);        // 0-2 hours inactivity
+  idle(1),           // Lowest activity level (progressive system)
+  walkSlow(2),       // 1-2 recent activities
+  walkFast(3),       // 3-4 recent activities  
+  runSlow(4),        // 5-6 recent activities
+  runFast(5);        // 7+ recent activities (highest level)
 
   const TurtleAnimationLevel(this.level);
   final int level;
