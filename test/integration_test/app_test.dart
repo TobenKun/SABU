@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:one_touch_savings/main.dart';
 import 'package:one_touch_savings/services/database_service.dart';
@@ -9,21 +10,36 @@ import 'package:one_touch_savings/services/database_service.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() {
+  setUpAll(() async {
+    // Initialize database with unique path for this test file
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    
+    // Use unique database path for test isolation
+    DatabaseService.useCustomTestDatabase('test_db_v1_${DateTime.now().millisecondsSinceEpoch}.db');
+    
+    // Mock SharedPreferences for animation service
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  setUp(() async {
+    // Reset database before each test to ensure clean state
+    final databaseService = DatabaseService();
+    await databaseService.resetUserData();
   });
 
   tearDown(() async {
     await DatabaseService.closeDatabase();
   });
 
+  tearDownAll(() async {
+    // Clean up test database path and restore normal database
+    await DatabaseService.closeDatabase();
+    DatabaseService.useNormalDatabase();
+  });
+
   group('User Story 1: Basic Savings Action', () {
     testWidgets('complete save flow works end-to-end', (WidgetTester tester) async {
-      // Reset database for clean test
-      final databaseService = DatabaseService();
-      await databaseService.resetUserData();
-
       // Start the app using proper widget testing approach
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -48,8 +64,6 @@ void main() {
     });
 
     testWidgets('multiple save operations work correctly', (WidgetTester tester) async {
-      final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -65,6 +79,7 @@ void main() {
         }
         
         // Verify database has correct total
+        final databaseService = DatabaseService();
         final progress = await databaseService.getCurrentProgress();
         expect(progress.totalSavings, equals(3000));
         expect(progress.totalSessions, equals(3));
@@ -72,8 +87,6 @@ void main() {
     });
 
     testWidgets('button response time meets performance requirements', (WidgetTester tester) async {
-      final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -98,7 +111,6 @@ void main() {
   group('User Story 2: Savings Progress Tracking', () {
     testWidgets('progress persists across app restarts', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       // First session - save some money
       await tester.pumpWidget(const SavingsApp());
@@ -148,7 +160,6 @@ void main() {
 
     testWidgets('korean number formatting works correctly', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -169,7 +180,6 @@ void main() {
 
     testWidgets('progress display shows correct totals', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -199,7 +209,6 @@ void main() {
   group('User Story 3: Milestone Celebrations', () {
     testWidgets('milestone celebration triggers at 10,000원', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -232,7 +241,6 @@ void main() {
 
     testWidgets('multiple milestones work correctly', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -260,7 +268,6 @@ void main() {
 
     testWidgets('milestone celebration completes within time limit', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
 
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -309,7 +316,6 @@ void main() {
 
     testWidgets('concurrent operations work correctly', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
       
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
@@ -330,7 +336,6 @@ void main() {
 
     testWidgets('all user stories work together', (WidgetTester tester) async {
       final databaseService = DatabaseService();
-      await databaseService.resetUserData();
       
       await tester.pumpWidget(const SavingsApp());
       await tester.pump();
