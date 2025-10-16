@@ -236,24 +236,19 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 200));
 
-      // Verify debug section exists
-      expect(find.text('DEBUG'), findsOneWidget);
+      // Debug section is currently disabled/commented out
+      expect(find.text('DEBUG'), findsNothing);
       
-      // Verify debug buttons exist
-      expect(find.text('I'), findsOneWidget); // Idle
-      expect(find.text('WS'), findsOneWidget); // Walk Slow
-      expect(find.text('WF'), findsOneWidget); // Walk Fast
-      expect(find.text('RS'), findsOneWidget); // Run Slow
-      expect(find.text('RF'), findsOneWidget); // Run Fast
+      // Debug buttons should not be present
+      expect(find.text('I'), findsNothing); // Idle
+      expect(find.text('WS'), findsNothing); // Walk Slow
+      expect(find.text('WF'), findsNothing); // Walk Fast
+      expect(find.text('RS'), findsNothing); // Run Slow
+      expect(find.text('RF'), findsNothing); // Run Fast
       
-      // Test one debug button (ensure it's visible first)
-      final debugButtonFinder = find.text('WS');
-      await tester.ensureVisible(debugButtonFinder);
-      await tester.tap(debugButtonFinder, warnIfMissed: false);
-      await tester.pump(const Duration(milliseconds: 200));
-      
-      // Animation state should have changed
+      // Verify the screen still works without debug controls
       expect(find.byType(AnimatedTurtleSprite), findsOneWidget);
+      expect(find.byType(SavingsButton), findsOneWidget);
     });
   });
 

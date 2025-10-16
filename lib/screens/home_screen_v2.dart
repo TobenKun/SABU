@@ -157,6 +157,7 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
             child: Column(
               children: [
                 const SizedBox(height: 20),
@@ -225,39 +226,39 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
                 const SizedBox(height: 20),
 
                 // DEBUG: Animation State Controls (TODO: Remove in production)
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                    border:
-                        Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'DEBUG',
-                        style:
-                            TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        children: [
-                          _buildDebugButton('I', TurtleAnimationLevel.idle),
-                          _buildDebugButton(
-                              'WS', TurtleAnimationLevel.walkSlow),
-                          _buildDebugButton(
-                              'WF', TurtleAnimationLevel.walkFast),
-                          _buildDebugButton('RS', TurtleAnimationLevel.runSlow),
-                          _buildDebugButton('RF', TurtleAnimationLevel.runFast),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                // Container(
+                //   margin: const EdgeInsets.symmetric(vertical: 8),
+                //   padding: const EdgeInsets.all(8),
+                //   decoration: BoxDecoration(
+                //     color: Colors.grey.withValues(alpha: 0.1),
+                //     borderRadius: BorderRadius.circular(4),
+                //     border:
+                //         Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                //   ),
+                //   child: Column(
+                //     children: [
+                //       const Text(
+                //         'DEBUG',
+                //         style:
+                //             TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                //       ),
+                //       const SizedBox(height: 4),
+                //       Wrap(
+                //         spacing: 4,
+                //         runSpacing: 4,
+                //         children: [
+                //           _buildDebugButton('I', TurtleAnimationLevel.idle),
+                //           _buildDebugButton(
+                //               'WS', TurtleAnimationLevel.walkSlow),
+                //           _buildDebugButton(
+                //               'WF', TurtleAnimationLevel.walkFast),
+                //           _buildDebugButton('RS', TurtleAnimationLevel.runSlow),
+                //           _buildDebugButton('RF', TurtleAnimationLevel.runFast),
+                //         ],
+                //       ),
+                //     ],
+                //   ),
+                // ),
 
                 const SizedBox(height: 20),
               ],
