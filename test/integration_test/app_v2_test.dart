@@ -10,6 +10,7 @@ import 'package:one_touch_savings/screens/home_screen_v2.dart';
 import 'package:one_touch_savings/widgets/animated_character.dart';
 import 'package:one_touch_savings/widgets/usage_stats_card.dart';
 import 'package:one_touch_savings/widgets/milestone_celebration.dart';
+import 'package:one_touch_savings/widgets/savings_button.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

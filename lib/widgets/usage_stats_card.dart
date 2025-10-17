@@ -3,10 +3,12 @@ import '../models/user_progress.dart';
 
 class UsageStatsCard extends StatelessWidget {
   final UserProgress progress;
+  final bool ultraCompact;
 
   const UsageStatsCard({
     super.key,
     required this.progress,
+    this.ultraCompact = false,
   });
 
   Widget _buildStatColumn(String label, String value, IconData icon) {
@@ -40,6 +42,128 @@ class UsageStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (ultraCompact) {
+      // Ultra-compact version for small screens with enhanced card design
+      return Container(
+        key: const Key('usage_stats_card'),
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.today,
+                        size: 12,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 3),
+                        Text(
+                          '오늘',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                    Text(
+                      '${progress.todaySessionCount}회',
+                      style: TextStyle(
+                        fontSize: 12, 
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.savings,
+                        size: 12,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 3),
+                        Text(
+                          '총 저축',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                    Text(
+                      '${progress.totalSessions}회',
+                      style: TextStyle(
+                        fontSize: 12, 
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.local_fire_department,
+                        size: 12,
+                        color: Colors.orange[400],
+                      ),
+                      const SizedBox(width: 3),
+                        Text(
+                          '연속 기록',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                    Text(
+                      '${progress.currentStreak}일',
+                      style: TextStyle(
+                        fontSize: 12, 
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       key: const Key('usage_stats_card'),
       width: double.infinity,

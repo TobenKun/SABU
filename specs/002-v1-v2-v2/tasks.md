@@ -8,11 +8,13 @@ Tests: Explicitly requested in plan/spec/contracts (TDD). Write tests before imp
 Organization: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 Format: `[ID] [P?] [Story] Description`
+
 - [P]: Can run in parallel (different files, no dependencies)
 - [Story]: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include absolute file paths in descriptions
 
 Path Conventions (Flutter mobile app)
+
 - Source code: `/Users/sanghyunshin/fock/sabu/lib/`
 - Tests: `/Users/sanghyunshin/fock/sabu/test/`
 - Assets: `/Users/sanghyunshin/fock/sabu/assets/images/`
@@ -21,13 +23,13 @@ Path Conventions (Flutter mobile app)
 
 Purpose: Project initialization and baseline configuration for V2 work
 
-- [X] T001 Verify turtle assets configured and present on disk
+- [x] T001 Verify turtle assets configured and present on disk
   - Check `pubspec.yaml` has:
     - `assets/images/characters/turtle/idle/`
     - `assets/images/characters/turtle/walking/`
     - `assets/images/characters/turtle/running/`
   - Verify frames exist: `/Users/sanghyunshin/fock/sabu/assets/images/characters/turtle/*/frame_*.png`
-- [X] T002 [P] Install deps and validate build
+- [x] T002 [P] Install deps and validate build
   - Run: `flutter pub get`, `flutter analyze`, `flutter test -q` (sanity)
 
 ---
@@ -38,7 +40,7 @@ Purpose: Core dependency needed by later stories
 
 ⚠️ CRITICAL: Complete before starting stories that require persistence (US2, US4)
 
-- [X] T003 Add SharedPreferences dependency (required by US2/US4)
+- [x] T003 Add SharedPreferences dependency (required by US2/US4)
   - Edit `/Users/sanghyunshin/fock/sabu/pubspec.yaml` → `dependencies:` add `shared_preferences: ^2.3.2`
   - Run: `flutter pub get`
 
@@ -50,36 +52,38 @@ Checkpoint: Foundation ready — user story implementation can now begin
 
 Goal: Provide a minimal V2 screen showing only essential elements and a stationary turtle above the savings button.
 
-Independent Test: Navigate to the V2 screen and verify only these appear: current savings amount (no progress bar/percentage), usage statistics (today/total/streak), savings button, turtle character (stationary). No AppBar, no button text label, no milestone overlays.
+Independent Test: Navigate to the V2 screen and verify only these appear: current savings amount (no progress bar/percentage), usage statistics (today/total/streak), savings button with text label, turtle character (stationary). No AppBar, no milestone overlays.
 
 ### Tests for User Story 1 (write first)
 
-- [X] T004 [P] [US1] Widget test to assert V2 minimal UI only
+- [x] T004 [P] [US1] Widget test to assert V2 minimal UI only
   - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/home_screen_v2_test.dart`
   - Pump `HomeScreenV2` and assert:
     - Finds savings amount display (simplified, no progress bar/percentage)
     - Finds usage statistics card (today/total/streak counts)
     - Finds `SavingsButton`
     - Finds a turtle Image above the button
-    - Does NOT find AppBar, button text label, V1-only widgets (milestone overlay, progress message)
+    - Finds button text label "터치해서 ₩1,000 저축하기"
+    - Does NOT find AppBar, V1-only widgets (milestone overlay, progress message)
 
 ### Implementation for User Story 1
 
-- [X] T005 [US1] Create simplified V2 screen with stationary turtle
+- [x] T005 [US1] Create simplified V2 screen with stationary turtle
   - Add `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart` with a body containing:
     - Simplified savings amount display (no AppBar, no progress bar, no percentage)
     - Usage statistics card showing today/total/streak counts (from V1)
     - `Image.asset('/Users/sanghyunshin/fock/sabu/assets/images/characters/turtle/idle/frame_0.png')` above button (temporary stationary turtle)
-    - `SavingsButton` with stubbed handler (no text label below button)
+    - `SavingsButton` with stubbed handler and text label below button
   - Ensure V1-only elements are absent (milestone overlays, progress bars, AppBar)
-- [X] T006 [P] [US1] Register a route for V2 without changing default home
+- [x] T006 [P] [US1] Register a route for V2 without changing default home
   - Edit `/Users/sanghyunshin/fock/sabu/lib/main.dart` MaterialApp:
     - Add `routes: { '/v2': (context) => const HomeScreenV2(), }`
     - Keep `home: const HomeScreen()` unchanged (V1 remains default)
 
 Checkpoint: US1 independently testable — V2 minimal screen exists and is navigable via `/v2`
-- V2 Features: Simplified savings amount (no progress bar/percentage), usage statistics, animated turtle, savings button
-- V2 Removals: AppBar, button text label, milestone overlays, progress messages
+
+- V2 Features: Simplified savings amount (no progress bar/percentage), usage statistics, animated turtle, savings button with text label
+- V2 Removals: AppBar, milestone overlays, progress messages
 
 ---
 
@@ -91,35 +95,36 @@ Independent Test: Perform savings actions and observe animation speed progressio
 
 ### Tests for User Story 2 (write first)
 
-- [X] T007 [P] [US2] Unit tests for animation state transitions and timing
+- [x] T007 [P] [US2] Unit tests for animation state transitions and timing
   - Create `/Users/sanghyunshin/fock/sabu/test/unit_test/animation_service_test.dart`
   - Cover: `onUserSavingsAction()` → runFast(5); 2hr step-downs; corrupted prefs → idle fallback; persistence keys
-- [X] T008 [P] [US2] Widget tests for animated turtle frame playback
+- [x] T008 [P] [US2] Widget tests for animated turtle frame playback
   - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/animated_character_test.dart`
   - Verify frames cycle and animation duration changes per level (idle → walkSlow → walkFast → runSlow → runFast)
 
 ### Implementation for User Story 2
 
-- [X] T009 [P] [US2] Create animation model
+- [x] T009 [P] [US2] Create animation model
   - Add `/Users/sanghyunshin/fock/sabu/lib/models/animation_state.dart` with `TurtleAnimationLevel` enum and `AnimationState`
-- [X] T010 [US2] Implement animation service per contract
+- [x] T010 [US2] Implement animation service per contract
   - Add `/Users/sanghyunshin/fock/sabu/lib/services/animation_service.dart` implementing `AnimationTimerService`
   - Methods: `getCurrentAnimationLevel`, `onUserSavingsAction`, `startPeriodicUpdates`, `dispose`
   - Persist using SharedPreferences keys (level, lastActivity, totalActivityCount)
   - Notify UI via ChangeNotifier or stream
-- [X] T011 [P] [US2] Implement animated turtle sprite widget
+- [x] T011 [P] [US2] Implement animated turtle sprite widget
   - Add `/Users/sanghyunshin/fock/sabu/lib/widgets/animated_character.dart` with `AnimatedTurtleSprite`
   - Preload frames from `/Users/sanghyunshin/fock/sabu/assets/images/characters/turtle/`
   - Drive frames via `AnimationController`; adjust duration per level; wrap in `RepaintBoundary`
-- [X] T012 [US2] Integrate animation with V2 screen
+- [x] T012 [US2] Integrate animation with V2 screen
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
     - Instantiate `AnimationTimerService`, start periodic updates on `initState`, dispose on `dispose`
     - Listen for level changes and rebuild
     - On savings button press, call `animationService.onUserSavingsAction()` before/after save flow
-    - Maintain simplified layout: no AppBar, simplified amount display, usage stats, no button text
+    - Maintain simplified layout: no AppBar, simplified amount display, usage stats, button with text label
 
 Checkpoint: US2 independently testable — animation responds to actions and steps down over time
-- V2 maintains simplified interface: amount display, usage stats, animated turtle, clean layout without AppBar/button text
+
+- V2 maintains simplified interface: amount display, usage stats, animated turtle, button text, clean layout without AppBar
 
 ---
 
@@ -131,37 +136,65 @@ Independent Test: On iPhone 16 Pro, layouts remain unchanged. On 800x480, all el
 
 ### Tests for User Story 3 (write first)
 
-- [ ] T013 [P] [US3] Widget tests for V2 small screen support
-  - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v2_test.dart`
-  - Pump `HomeScreenV2` at iPhone 16 Pro size (393x852) and verify layout unchanged from baseline
-  - Pump `HomeScreenV2` at 800x480 and assert no scroll, all elements fit within bounds
-  - Verify button text label IS present (V2 design updated)
+- [x] T013 [P] [US3] Widget tests for V2 small screen support (COMPLETED)
+
+  - Created `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v2_test.dart`
+  - Tests horizontal layout with proper element positioning and spacing
+  - Current tests verify: iPhone 16 Pro unchanged, 800x480 fits without scroll, button text present, horizontal arrangement
 
 - [ ] T013a [P] [US3] Widget tests for V1 small screen support
+
   - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v1_test.dart`
   - Pump `HomeScreen` at iPhone 16 Pro size (393x852) and verify layout unchanged from baseline
   - Pump `HomeScreen` at 800x480 and assert no scroll, all elements fit within bounds
   - Verify button text label IS present (V1 design)
 
+- [x] T013b [US3] Update V2 small screen tests for horizontal layout (COMPLETED)
+  - Edit `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v2_test.dart`:
+    - Updated element order verification for horizontal layout
+    - Test side-by-side positioning of progress display and stats card
+    - Verify SafeArea applied to prevent status bar overlap
+    - Verify UsageStatsCard maintains card design even in compact mode
+    - Verify proper spacing and no overlap between horizontal elements
+
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Add specific 800x480 support to V2 screen without affecting iPhone 16 Pro baseline
-  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
-    - Keep current fixed sizes as baseline for iPhone 16 Pro (393x852) - no changes to existing layout
-    - Add conditional logic to detect 800x480 screen size specifically using MediaQuery
-    - For 800x480 only: reduce padding, turtle size, spacing to fit within 480px height
-    - Maintain clean design without AppBar but WITH button text label
-    - Portrait mode only (no landscape support needed)
+- [x] T014 [US3] Add specific 800x480 support to V2 screen (COMPLETED)
+- [x] T014a [US3] Fix small screen layout with horizontal arrangement (COMPLETED)
 
-- [ ] T014a [US3] Add specific 800x480 support to V1 screen without affecting iPhone 16 Pro baseline
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
+    - Changed small screen layout to horizontal arrangement:
+      - Top row: SimplifiedProgressDisplay (left) + UsageStatsCard (right)
+      - Middle: AnimatedTurtleSprite (centered)
+      - Bottom: SavingsButton + text (centered)
+    - Maintain proper spacing and aspect ratios for 800x480
+
+- [x] T014b [US3] Add SafeArea to prevent status bar overlap (COMPLETED)
+
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
+    - Wrapped small screen layout in SafeArea to prevent status bar overlap
+    - Ensured adequate top padding for device status bar
+
+- [x] T014c [US3] Maintain UsageStatsCard design in compact mode (COMPLETED)
+
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/widgets/usage_stats_card.dart`:
+    - Updated ultraCompact mode to preserve card visual design (border, background, shadow)
+    - Reduced size but maintained card appearance instead of plain text
+    - Ensured readability at smaller size
+
+- [ ] T015a [US3] Add specific 800x480 support to V1 screen without affecting iPhone 16 Pro baseline
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart`:
     - Keep current fixed sizes as baseline for iPhone 16 Pro (393x852) - no changes to existing layout
     - Add conditional logic to detect 800x480 screen size specifically using MediaQuery
-    - For 800x480 only: reduce AppBar height, padding, button size, spacing to fit within 480px height
-    - Maintain proportional scaling to preserve visual hierarchy on small screens
+    - For 800x480 only: implement horizontal layout similar to V2:
+      - Reduce AppBar height and use SafeArea
+      - Top row: Progress display (left) + Individual stat cards compacted horizontally (right)
+      - Middle: Milestone celebration space (if active) or empty space
+      - Bottom: SavingsButton + text (centered)
+    - Maintain V1 design elements (AppBar, individual stat cards, milestone overlays, progress bars)
     - Portrait mode only (no landscape support needed)
 
-Checkpoint: US3 independently testable — Both V1 and V2 layouts preserved on iPhone 16 Pro baseline, optimized for 800x480 small screens
+Checkpoint: US3 independently testable — Both V1 and V2 layouts preserved on iPhone 16 Pro baseline, optimized for 800x480 small screens with horizontal arrangement of key elements, SafeArea protection, and maintained design consistency for each version
 
 ---
 
@@ -219,6 +252,7 @@ Purpose: Performance, documentation, and non-functional improvements spanning mu
 ## Dependencies & Execution Order
 
 Phase Dependencies
+
 - Setup (Phase 1): None → start immediately
 - Foundational (Phase 2): Must complete before US2 and US4 (SharedPreferences)
 - User Stories (Phase 3+):
@@ -229,12 +263,15 @@ Phase Dependencies
 - Polish: After targeted stories complete
 
 User Story Dependency Graph
+
 - US1 → (US2, US3) → US4
 
 Within Each User Story
+
 - Tests first (TDD) → Models → Services → Widgets/Screens → Integration
 
 Parallel Opportunities
+
 - US1: route registration (T006) can proceed while writing screen (T005)
 - US2: model (T009) and widget (T011) in parallel; tests (T007, T008) in parallel
 - US3: tests (T013) parallel with orientation handling (T015)
@@ -245,18 +282,22 @@ Parallel Opportunities
 ## Parallel Execution Examples
 
 User Story 1
+
 - Run in parallel: T004, T006
 - Then: T005
 
 User Story 2
+
 - Run in parallel: T007, T008, T009, T011
 - Then: T010 → T012
 
 User Story 3
+
 - Run in parallel: T013, T015
 - Then: T014
 
 User Story 4
+
 - Run in parallel: T016, T017, T018, T019, T021
 - Then: T020 → T022 → T023 → T024
 
@@ -265,11 +306,13 @@ User Story 4
 ## Implementation Strategy
 
 MVP First (User Story 1 Only)
+
 1. Complete Phase 1: Setup
 2. Complete Phase 3: US1 (minimal V2 screen + route)
 3. Stop and validate with widget test (T004)
 
 Incremental Delivery
+
 1. Setup + Foundational → baseline ready
 2. Add US1 → test independently → demo (MVP!)
 3. Add US2 (animation) → test independently
@@ -280,7 +323,7 @@ Incremental Delivery
 
 ## Story Mapping Summary
 
-- US1 (P1): Minimal V2 interface with simplified amount display, usage statistics, stationary turtle, no AppBar/button text
+- US1 (P1): Minimal V2 interface with simplified amount display, usage statistics, stationary turtle, button text, no AppBar
 - US2 (P2): Animated turtle reacting to savings, with timed step-down, maintaining clean V2 layout
 - US3 (P3): Support for 800x480 small screens while preserving iPhone 16 Pro baseline layout
 - US4 (P4): Design version selection with persistence and routing
@@ -289,7 +332,7 @@ Incremental Delivery
 
 ## Checkpoints
 
-- After US1: V2 minimal UI ready with simplified design (amount display, usage stats, turtle, button - no AppBar/button text); safe to ship as MVP
+- After US1: V2 minimal UI ready with simplified design (amount display, usage stats, turtle, button with text - no AppBar); safe to ship as MVP
 - After US2: Character adds engagement with immediate feedback
 - After US3: 800x480 device support without scrolling while preserving iPhone 16 Pro baseline
 - After US4: Seamless V1/V2 choice with persistent preference

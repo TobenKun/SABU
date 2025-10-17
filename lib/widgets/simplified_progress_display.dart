@@ -7,6 +7,7 @@ class SimplifiedProgressDisplay extends StatefulWidget {
   final bool showAnimation;
   final Duration animationDuration;
   final VoidCallback? onAnimationComplete;
+  final bool ultraCompact;
 
   const SimplifiedProgressDisplay({
     super.key,
@@ -14,6 +15,7 @@ class SimplifiedProgressDisplay extends StatefulWidget {
     this.showAnimation = true,
     this.animationDuration = const Duration(milliseconds: 600),
     this.onAnimationComplete,
+    this.ultraCompact = false,
   });
 
   @override
@@ -100,6 +102,68 @@ class _SimplifiedProgressDisplayState extends State<SimplifiedProgressDisplay>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.ultraCompact) {
+      // Ultra-compact version for small screens - vertical layout
+      return RepaintBoundary(
+        child: Container(
+          key: const Key('simplified_progress_display'),
+          height: 100,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '지금까지 저축한 금액',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Flexible(
+                child: AnimatedBuilder(
+                  animation: _counterAnimation,
+                  builder: (context, child) {
+                    final currentValue = _counterAnimation.value;
+                    if (_cachedCounterText == null || 
+                        !_cachedCounterText!.contains(currentValue.toString())) {
+                      _cachedCounterText = _formatCurrency(currentValue);
+                    }
+                    
+                    return Text(
+                      _cachedCounterText!,
+                      key: const Key('simplified_progress_counter'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4CAF50),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return RepaintBoundary(
       child: SizedBox(
         width: double.infinity,
