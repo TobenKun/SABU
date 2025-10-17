@@ -75,10 +75,19 @@ void main() {
       // Set small screen size (800x480 WVGA)
       await tester.binding.setSurfaceSize(const Size(800, 480));
       
-      // Pump the HomeScreen widget
+      // Pump the HomeScreen widget with explicit MediaQuery override
       await tester.pumpWidget(
         const MaterialApp(
-          home: HomeScreen(),
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(800, 480),
+              devicePixelRatio: 1.0,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
+              viewPadding: EdgeInsets.zero,
+            ),
+            child: HomeScreen(),
+          ),
         ),
       );
       
@@ -141,7 +150,16 @@ void main() {
       
       await tester.pumpWidget(
         const MaterialApp(
-          home: HomeScreen(),
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(800, 480),
+              devicePixelRatio: 1.0,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
+              viewPadding: EdgeInsets.zero,
+            ),
+            child: HomeScreen(),
+          ),
         ),
       );
       
@@ -175,7 +193,16 @@ void main() {
       
       await tester.pumpWidget(
         const MaterialApp(
-          home: HomeScreen(),
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(800, 480),
+              devicePixelRatio: 1.0,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
+              viewPadding: EdgeInsets.zero,
+            ),
+            child: HomeScreen(),
+          ),
         ),
       );
       
@@ -210,7 +237,16 @@ void main() {
       
       await tester.pumpWidget(
         const MaterialApp(
-          home: HomeScreen(),
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(800, 480),
+              devicePixelRatio: 1.0,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
+              viewPadding: EdgeInsets.zero,
+            ),
+            child: HomeScreen(),
+          ),
         ),
       );
       

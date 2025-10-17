@@ -170,16 +170,16 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(800, 480));
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(
+            data: MediaQueryData(
               size: Size(800, 480),
               devicePixelRatio: 1.0,
               padding: EdgeInsets.zero,
               viewInsets: EdgeInsets.zero,
               viewPadding: EdgeInsets.zero,
             ),
-            child: const HomeScreenV2(),
+            child: HomeScreenV2(),
           ),
         ),
       );
@@ -206,7 +206,7 @@ void main() {
           reason: 'Progress display should be to the left of stats card');
       expect(progressRect.right, lessThanOrEqualTo(statsRect.left + 10),
           reason: 'Progress and stats should not overlap horizontally');
-      
+
       // Both should be in the same vertical row (similar top position)
       // Increased tolerance for vertical layout in stats card
       expect((progressRect.top - statsRect.top).abs(), lessThan(50),
@@ -243,16 +243,16 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(800, 480));
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(
+            data: MediaQueryData(
               size: Size(800, 480),
               devicePixelRatio: 1.0,
               padding: EdgeInsets.zero,
               viewInsets: EdgeInsets.zero,
               viewPadding: EdgeInsets.zero,
             ),
-            child: const HomeScreenV2(),
+            child: HomeScreenV2(),
           ),
         ),
       );
@@ -269,7 +269,7 @@ void main() {
 
       // Usage stats in single card format (V2 approach) with maintained card design
       expect(find.byType(UsageStatsCard), findsOneWidget);
-      
+
       // UsageStatsCard should maintain card appearance even in compact mode
       final usageStatsCard = find.byType(UsageStatsCard);
       final usageStatsWidget = tester.widget<UsageStatsCard>(usageStatsCard);
@@ -311,16 +311,16 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(800, 480));
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(
+            data: MediaQueryData(
               size: Size(800, 480),
               devicePixelRatio: 1.0,
               padding: EdgeInsets.zero,
               viewInsets: EdgeInsets.zero,
               viewPadding: EdgeInsets.zero,
             ),
-            child: const HomeScreenV2(),
+            child: HomeScreenV2(),
           ),
         ),
       );
@@ -338,14 +338,14 @@ void main() {
       // Verify horizontal arrangement
       expect(progressRect.left, lessThan(statsRect.left),
           reason: 'Progress should be left of stats');
-      
+
       // Verify reasonable widths (both should take reasonable portions of screen width)
-      final screenWidth = 800.0;
+      const screenWidth = 800.0;
       expect(progressRect.width, greaterThan(screenWidth * 0.2),
           reason: 'Progress display should be at least 20% of screen width');
       expect(statsRect.width, greaterThan(screenWidth * 0.2),
           reason: 'Stats card should be at least 20% of screen width');
-      
+
       // Together they should utilize most of the screen width for full layout
       expect(progressRect.width + statsRect.width, lessThan(screenWidth * 0.98),
           reason: 'Combined width should leave minimal room for spacing');
@@ -358,7 +358,7 @@ void main() {
       final turtle = find.byType(AnimatedTurtleSprite);
       final button = find.byType(SavingsButton);
       final buttonText = find.text('터치해서 ₩1,000 저축하기');
-      
+
       final turtleRect = tester.getRect(turtle);
       final buttonRect = tester.getRect(button);
       final textRect = tester.getRect(buttonText);
@@ -372,4 +372,3 @@ void main() {
     });
   });
 }
-
