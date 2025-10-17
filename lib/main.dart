@@ -39,7 +39,7 @@ class SavingsApp extends StatelessWidget {
         ),
       ),
       // home: const HomeScreen(),
-      home: const HomeScreenV2(),
+      home: const HomeScreenV2(), // testing v2!
       routes: {
         '/v2': (context) => const HomeScreenV2(),
       },

@@ -123,29 +123,45 @@ Checkpoint: US2 independently testable — animation responds to actions and ste
 
 ---
 
-## Phase 5: User Story 3 — Responsive Layout for Different Screen Sizes (Priority: P3)
+## Phase 5: User Story 3 — Support for Small Screens (800x480) (Priority: P3)
 
-Goal: Ensure V2 layout fits entirely on 800x480 (no scrolling) and scales appropriately up to 1440x3120, adapting to orientation changes.
+Goal: Ensure both V1 and V2 layouts fit entirely on 800x480 WVGA screens without scrolling, while maintaining iPhone 16 Pro (393x852) as the baseline with no layout changes. Create specific optimizations for the 800x480 case rather than universal responsive scaling. V2 implementation prioritized first, then V1.
 
-Independent Test: On small screens, all elements visible without scrolling; on larger screens, elements scale proportionally; orientation changes maintain good sizing.
+Independent Test: On iPhone 16 Pro, layouts remain unchanged. On 800x480, all elements visible without scrolling with appropriately sized elements.
 
 ### Tests for User Story 3 (write first)
 
-- [ ] T013 [P] [US3] Widget tests for responsiveness
-  - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/responsive_v2_test.dart`
-  - Pump `HomeScreenV2` at constrained sizes (800x480 and 1080x2340); assert no scroll on small screen and reasonable element sizes on large
+- [ ] T013 [P] [US3] Widget tests for V2 small screen support
+  - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v2_test.dart`
+  - Pump `HomeScreenV2` at iPhone 16 Pro size (393x852) and verify layout unchanged from baseline
+  - Pump `HomeScreenV2` at 800x480 and assert no scroll, all elements fit within bounds
+  - Verify button text label IS present (V2 design updated)
+
+- [ ] T013a [P] [US3] Widget tests for V1 small screen support
+  - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v1_test.dart`
+  - Pump `HomeScreen` at iPhone 16 Pro size (393x852) and verify layout unchanged from baseline
+  - Pump `HomeScreen` at 800x480 and assert no scroll, all elements fit within bounds
+  - Verify button text label IS present (V1 design)
 
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Apply responsive layout rules to V2 screen
+- [ ] T014 [US3] Add specific 800x480 support to V2 screen without affecting iPhone 16 Pro baseline
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
-    - Use `MediaQuery`/`LayoutBuilder` to scale turtle size, paddings, and button size
-    - Ensure simplified layout (amount display, usage stats, turtle, button) fits 800x480 without scroll
-    - Maintain clean design without AppBar or button text label
-- [ ] T015 [P] [US3] Handle orientation changes
-  - Update spacing/element sizing for landscape vs portrait; keep 44px minimum touch targets
+    - Keep current fixed sizes as baseline for iPhone 16 Pro (393x852) - no changes to existing layout
+    - Add conditional logic to detect 800x480 screen size specifically using MediaQuery
+    - For 800x480 only: reduce padding, turtle size, spacing to fit within 480px height
+    - Maintain clean design without AppBar but WITH button text label
+    - Portrait mode only (no landscape support needed)
 
-Checkpoint: US3 independently testable — V2 layout adapts without scrolling on small screens
+- [ ] T014a [US3] Add specific 800x480 support to V1 screen without affecting iPhone 16 Pro baseline
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart`:
+    - Keep current fixed sizes as baseline for iPhone 16 Pro (393x852) - no changes to existing layout
+    - Add conditional logic to detect 800x480 screen size specifically using MediaQuery
+    - For 800x480 only: reduce AppBar height, padding, button size, spacing to fit within 480px height
+    - Maintain proportional scaling to preserve visual hierarchy on small screens
+    - Portrait mode only (no landscape support needed)
+
+Checkpoint: US3 independently testable — Both V1 and V2 layouts preserved on iPhone 16 Pro baseline, optimized for 800x480 small screens
 
 ---
 
@@ -266,7 +282,7 @@ Incremental Delivery
 
 - US1 (P1): Minimal V2 interface with simplified amount display, usage statistics, stationary turtle, no AppBar/button text
 - US2 (P2): Animated turtle reacting to savings, with timed step-down, maintaining clean V2 layout
-- US3 (P3): Responsive layout ensuring usability on small and large screens for simplified V2 design
+- US3 (P3): Support for 800x480 small screens while preserving iPhone 16 Pro baseline layout
 - US4 (P4): Design version selection with persistence and routing
 
 ---
@@ -275,5 +291,5 @@ Incremental Delivery
 
 - After US1: V2 minimal UI ready with simplified design (amount display, usage stats, turtle, button - no AppBar/button text); safe to ship as MVP
 - After US2: Character adds engagement with immediate feedback
-- After US3: Wide device support without scrolling on smallest screen
+- After US3: 800x480 device support without scrolling while preserving iPhone 16 Pro baseline
 - After US4: Seamless V1/V2 choice with persistent preference
