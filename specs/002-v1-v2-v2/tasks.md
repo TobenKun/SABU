@@ -222,7 +222,7 @@ Independent Test: Switch between V1 and V2 and verify data consistency and inter
   - Add `/Users/sanghyunshin/fock/sabu/lib/models/design_version_setting.dart` with `DesignVersion` enum and `DesignVersionSetting`
 - [x] T020 [US4] Implement design version service per contract
   - Add `/Users/sanghyunshin/fock/sabu/lib/services/design_version_service.dart` (SharedPreferences storage; defaults: existing → V1, new → V2; intro helpers)
-- [ ] T021 [P] [US4] Implement design version toggle widget
+- [x] T021 [P] [US4] Implement design version toggle widget
   - Add `/Users/sanghyunshin/fock/sabu/lib/widgets/design_version_toggle.dart` (two radio options; calls `onVersionChanged`)
 - [ ] T022 [US4] Add router to choose V1/V2 at app start
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart` to add `HomeScreenRouter` that returns `HomeScreen` or `HomeScreenV2` based on `DesignVersionService().getCurrentDesignVersion()`

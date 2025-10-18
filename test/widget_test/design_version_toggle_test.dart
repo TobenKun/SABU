@@ -221,15 +221,21 @@ void main() {
 
     testWidgets('handles rapid selection changes', (WidgetTester tester) async {
       final List<DesignVersion> selections = [];
+      DesignVersion currentVersion = DesignVersion.v1;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: DesignVersionToggle(
-              currentVersion: DesignVersion.v1,
-              onVersionChanged: (version) {
-                selections.add(version);
-              },
+            body: StatefulBuilder(
+              builder: (context, setState) => DesignVersionToggle(
+                currentVersion: currentVersion,
+                onVersionChanged: (version) {
+                  selections.add(version);
+                  setState(() {
+                    currentVersion = version;
+                  });
+                },
+              ),
             ),
           ),
         ),
@@ -244,14 +250,15 @@ void main() {
                    widget.value == DesignVersion.v2,
       );
 
-      // Rapid selections
-      await tester.tap(v2Radio);
+      // Rapid selections - only changing values should trigger callbacks
+      await tester.tap(v2Radio); // v1 -> v2 (triggers callback)
       await tester.pump();
-      await tester.tap(v1Radio);
+      await tester.tap(v1Radio); // v2 -> v1 (triggers callback) 
       await tester.pump();
-      await tester.tap(v2Radio);
+      await tester.tap(v2Radio); // v1 -> v2 (triggers callback)
       await tester.pump();
 
+      // Only actual changes should be recorded
       expect(selections, [
         DesignVersion.v2,
         DesignVersion.v1,
