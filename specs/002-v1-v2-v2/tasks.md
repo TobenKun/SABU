@@ -182,7 +182,7 @@ Independent Test: On iPhone 16 Pro, layouts remain unchanged. On 800x480, all el
     - Reduced size but maintained card appearance instead of plain text
     - Ensured readability at smaller size
 
-- [ ] T015a [US3] Add specific 800x480 support to V1 screen without affecting iPhone 16 Pro baseline
+- [x] T015a [US3] Add specific 800x480 support to V1 screen without affecting iPhone 16 Pro baseline
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart`:
     - Keep current fixed sizes as baseline for iPhone 16 Pro (393x852) - no changes to existing layout
     - Add conditional logic to detect 800x480 screen size specifically using MediaQuery
@@ -218,9 +218,9 @@ Independent Test: Switch between V1 and V2 and verify data consistency and inter
 
 ### Implementation for User Story 4
 
-- [ ] T019 [P] [US4] Create design version model
+- [x] T019 [P] [US4] Create design version model
   - Add `/Users/sanghyunshin/fock/sabu/lib/models/design_version_setting.dart` with `DesignVersion` enum and `DesignVersionSetting`
-- [ ] T020 [US4] Implement design version service per contract
+- [x] T020 [US4] Implement design version service per contract
   - Add `/Users/sanghyunshin/fock/sabu/lib/services/design_version_service.dart` (SharedPreferences storage; defaults: existing → V1, new → V2; intro helpers)
 - [ ] T021 [P] [US4] Implement design version toggle widget
   - Add `/Users/sanghyunshin/fock/sabu/lib/widgets/design_version_toggle.dart` (two radio options; calls `onVersionChanged`)
