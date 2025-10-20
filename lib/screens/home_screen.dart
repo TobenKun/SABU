@@ -3,10 +3,13 @@ import '../models/user_progress.dart';
 import '../services/database_service.dart';
 import '../services/logger_service.dart';
 import '../services/feedback_service.dart';
+import '../services/design_version_service.dart';
+import '../models/design_version_setting.dart';
 import '../widgets/progress_display.dart';
 import '../widgets/savings_button.dart';
 import '../widgets/milestone_celebration.dart';
 import '../utils/korean_number_formatter.dart';
+import 'home_screen_v2.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,15 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       LoggerService.debug('Loading user progress');
       final progress = await _databaseService.getCurrentProgress();
-      setState(() {
-        _progress = progress;
-      });
+      if (mounted) {
+        setState(() {
+          _progress = progress;
+        });
+      }
       LoggerService.info('Progress loaded successfully - Total: ₩${progress.totalSavings}');
     } catch (e) {
       LoggerService.error('Failed to load progress', e);
-      setState(() {
-        _errorMessage = 'Failed to load progress';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load progress';
+        });
+      }
     }
   }
 
@@ -174,35 +181,48 @@ class _HomeScreenState extends State<HomeScreen> {
                          screenSize.height <= 500;                                  // Very small screens
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('One-Touch Savings'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        toolbarHeight: isSmallScreen ? 40 : kToolbarHeight,
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(isSmallScreen ? 4.0 : 16.0),
-            child: isSmallScreen 
-              ? _buildSmallScreenLayout() 
-              : SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(), 
-                  child: _buildNormalLayout(),
-                ),
-          ),
-          // Milestone Celebration Overlay
-          if (_currentMilestone != null)
-            MilestoneCelebration(
-              milestoneAmount: _currentMilestone!,
-               onComplete: () {
-                 if (mounted) {
-                   setState(() {
-                     _currentMilestone = null;
-                   });
-                 }
-               },
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(isSmallScreen ? 4.0 : 16.0),
+              child: isSmallScreen 
+                ? _buildSmallScreenLayout() 
+                : SingleChildScrollView(
+                    physics: const NeverScrollableScrollPhysics(), 
+                    child: _buildNormalLayout(),
+                  ),
             ),
-        ],
+            // Milestone Celebration Overlay
+            if (_currentMilestone != null)
+              MilestoneCelebration(
+                milestoneAmount: _currentMilestone!,
+                 onComplete: () {
+                   if (mounted) {
+                     setState(() {
+                       _currentMilestone = null;
+                     });
+                   }
+                 },
+              ),
+            
+            // Settings button positioned in top-right corner
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: Icon(
+                  Icons.settings,
+                  size: 20,
+                  color: Colors.grey[600],
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/settings');
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -509,6 +529,70 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
+}
 
+class HomeScreenRouter extends StatefulWidget {
+  const HomeScreenRouter({super.key});
 
+  @override
+  State<HomeScreenRouter> createState() => _HomeScreenRouterState();
+}
+
+class _HomeScreenRouterState extends State<HomeScreenRouter> {
+  final DesignVersionService _designVersionService = DesignVersionService();
+  DesignVersion? _currentVersion;
+  bool _isLoading = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentVersion();
+    _listenToVersionChanges();
+  }
+
+  Future<void> _loadCurrentVersion() async {
+    try {
+      final version = await _designVersionService.getCurrentDesignVersion();
+      if (mounted) {
+        setState(() {
+          _currentVersion = version;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _currentVersion = DesignVersion.v1; // Default to V1 on error
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _listenToVersionChanges() {
+    _designVersionService.versionChangeStream.listen((change) {
+      if (mounted) {
+        setState(() {
+          _currentVersion = change.newVersion;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_currentVersion == DesignVersion.v2) {
+      return const HomeScreenV2();
+    } else {
+      return const HomeScreen();
+    }
+  }
 }

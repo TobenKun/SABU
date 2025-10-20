@@ -224,22 +224,10 @@ class DatabaseService {
         try {
           final db = await database;
           
-          final List<Map<String, dynamic>> result = await db.rawQuery('''
-            SELECT 
-              total_savings,
-              total_sessions,
-              CASE 
-                WHEN date(last_save_date/1000, 'unixepoch') = date('now')
-                THEN today_session_count
-                ELSE 0
-              END as today_session_count,
-              last_save_date,
-              current_streak,
-              longest_streak,
-              milestones
-            FROM user_progress 
-            WHERE id = 1
-          ''');
+          // Minimal query with specific columns only
+          final List<Map<String, dynamic>> result = await db.rawQuery(
+            'SELECT total_savings, total_sessions, today_session_count, last_save_date, current_streak, longest_streak, milestones FROM user_progress WHERE id = 1'
+          );
           
           if (result.isEmpty) {
             // Initialize if missing
@@ -247,7 +235,25 @@ class DatabaseService {
             return UserProgress.empty();
           }
           
-          return UserProgress.fromMap(result.first);
+          final data = result.first;
+          
+          // Minimal today check - just use approximate day calculation
+          final lastSaveDate = data['last_save_date'] as int? ?? 0;
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final isToday = (now - lastSaveDate) < 86400000; // 24 hours in milliseconds
+          
+          // Create result with minimal processing
+          final resultData = <String, dynamic>{
+            'total_savings': data['total_savings'],
+            'total_sessions': data['total_sessions'],
+            'today_session_count': isToday ? data['today_session_count'] : 0,
+            'last_save_date': data['last_save_date'],
+            'current_streak': data['current_streak'],
+            'longest_streak': data['longest_streak'],
+            'milestones': data['milestones'],
+          };
+          
+          return UserProgress.fromMap(resultData);
           
         } catch (e) {
           throw DatabaseException(

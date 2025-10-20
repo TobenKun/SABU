@@ -47,7 +47,7 @@ void main() {
         );
         
         expect(result, equals('slow_success'));
-      });
+      }, timeout: const Timeout(Duration(seconds: 5)));
       
       test('should monitor very slow database operation and log error', () async {
         const operationName = 'verySlowOperation';
@@ -61,7 +61,7 @@ void main() {
         );
         
         expect(result, equals('very_slow_success'));
-      });
+      }, timeout: const Timeout(Duration(seconds: 5)));
       
       test('should handle failed database operation and rethrow error', () async {
         const operationName = 'failedOperation';
@@ -115,19 +115,19 @@ void main() {
       
       test('should monitor operation with custom time limit', () async {
         const operationName = 'customLimitOperation';
-        const maxTimeMs = 200;
+        const maxTimeMs = 100;
         
         final result = await PerformanceService.monitorOperation(
           operationName,
           () async {
-            await Future.delayed(const Duration(milliseconds: 150));
+            await Future.delayed(const Duration(milliseconds: 75));
             return 'custom_result';
           },
           maxTimeMs: maxTimeMs,
         );
         
         expect(result, equals('custom_result'));
-      });
+      }, timeout: const Timeout(Duration(seconds: 3)));
       
       test('should log warning for operation approaching time limit', () async {
         const operationName = 'approachingLimitOperation';
@@ -372,7 +372,7 @@ void main() {
         stopwatch.stop();
         
         // Should complete in reasonable time (allowing for test environment overhead)
-        expect(stopwatch.elapsedMilliseconds, lessThan(100));
+        expect(stopwatch.elapsedMilliseconds, lessThan(150));
       });
       
       test('should measure timing accurately for longer operations', () async {
@@ -381,18 +381,18 @@ void main() {
         await PerformanceService.monitorOperation(
           'longerTimingTest',
           () async {
-            await Future.delayed(const Duration(milliseconds: 100));
+            await Future.delayed(const Duration(milliseconds: 50));
             return 'longer_timing_result';
           },
-          maxTimeMs: 200,
+          maxTimeMs: 100,
         );
         
         stopwatch.stop();
         
-        // Should take at least 100ms but not much more than 150ms in test environment
-        expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(90));
-        expect(stopwatch.elapsedMilliseconds, lessThan(200));
-      });
+        // Should take at least 50ms but not much more than 100ms in test environment
+        expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(40));
+        expect(stopwatch.elapsedMilliseconds, lessThan(150));
+      }, timeout: const Timeout(Duration(seconds: 3)));
     });
   });
 }

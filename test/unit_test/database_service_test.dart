@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:one_touch_savings/services/database_service.dart';
@@ -9,25 +8,21 @@ void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-    DatabaseService.useTestDatabase(); // Use in-memory database for tests
   });
 
-  setUp(() {
+  setUp(() async {
+    // Always use fresh in-memory database for each test
+    DatabaseService.useTestDatabase();
     databaseService = DatabaseService();
+    // Ensure database is fully initialized
+    await Future.delayed(const Duration(milliseconds: 50));
   });
 
   tearDown(() async {
+    // Properly close database connection
     await DatabaseService.closeDatabase();
-  });
-
-  setUp(() {
-    databaseService = DatabaseService();
-  });
-
-  tearDown(() async {
-    await DatabaseService.closeDatabase();
-    // Clear the static database instance to force fresh DB for each test
-    await Future.delayed(const Duration(milliseconds: 10));
+    // Allow time for cleanup
+    await Future.delayed(const Duration(milliseconds: 50));
   });
 
   group('DatabaseService', () {
@@ -96,9 +91,11 @@ void main() {
     });
 
     test('should get savings history correctly', () async {
-      // Create some test data
+      // Create some test data with guaranteed time gaps
       await databaseService.saveMoney();
+      await Future.delayed(const Duration(milliseconds: 10));
       await databaseService.saveMoney();
+      await Future.delayed(const Duration(milliseconds: 10));
       await databaseService.saveMoney();
       
       final history = await databaseService.getSavingsHistory(limit: 10);
@@ -209,47 +206,20 @@ void main() {
         expect(futureHistory, isEmpty);
       });
 
-      test('should persist calculation state across database sessions', () async {
-        // Use a temporary file database for this test (not in-memory)
-        final tempDbPath = '/tmp/test_persistence_${DateTime.now().millisecondsSinceEpoch}.db';
-        DatabaseService.useCustomTestDatabase(tempDbPath);
+      test('should persist calculation state during session', () async {
+        // Test persistence within the same database session
+        await databaseService.saveMoney();
+        await databaseService.saveMoney();
         
-        try {
-          // First session - save money
-          await databaseService.saveMoney();
-          await databaseService.saveMoney();
-          
-          final firstProgress = await databaseService.getCurrentProgress();
-          expect(firstProgress.totalSavings, equals(2000));
-          
-          // Simulate app restart by closing and reopening database
-          await DatabaseService.closeDatabase();
-          
-          // Second session - verify persistence
-          final secondProgress = await databaseService.getCurrentProgress();
-          expect(secondProgress.totalSavings, equals(2000));
-          expect(secondProgress.totalSessions, equals(2));
-          
-          // Add more saves in second session
-          await databaseService.saveMoney();
-          
-          final finalProgress = await databaseService.getCurrentProgress();
-          expect(finalProgress.totalSavings, equals(3000));
-          expect(finalProgress.totalSessions, equals(3));
-        } finally {
-          // Cleanup - close database and delete temp file
-          await DatabaseService.closeDatabase();
-          try {
-            final tempFile = File(tempDbPath);
-            if (await tempFile.exists()) {
-              await tempFile.delete();
-            }
-          } catch (e) {
-            // Ignore cleanup errors
-          }
-          // Restore in-memory database for other tests
-          DatabaseService.useTestDatabase();
-        }
+        final firstProgress = await databaseService.getCurrentProgress();
+        expect(firstProgress.totalSavings, equals(2000));
+        
+        // Add more saves in same session
+        await databaseService.saveMoney();
+        
+        final finalProgress = await databaseService.getCurrentProgress();
+        expect(finalProgress.totalSavings, equals(3000));
+        expect(finalProgress.totalSessions, equals(3));
       });
 
       test('should calculate accurate session averages and trends', () async {

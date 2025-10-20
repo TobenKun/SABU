@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/home_screen.dart';
 import 'screens/home_screen_v2.dart';
+import 'screens/settings_screen.dart';
 import 'services/performance_service.dart';
 import 'services/logger_service.dart';
 
@@ -46,10 +47,10 @@ class SavingsApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
-      // home: const HomeScreenV2(), // testing v2!
+      home: const HomeScreenRouter(),
       routes: {
         '/v2': (context) => const HomeScreenV2(),
+        '/settings': (context) => const SettingsScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

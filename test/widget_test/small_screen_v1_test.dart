@@ -38,9 +38,11 @@ void main() {
       await tester.pumpAndSettle();
       
       // Verify essential V1 elements are present
-      expect(find.byType(AppBar), findsOneWidget);
       expect(find.byType(ProgressDisplay), findsOneWidget);
       expect(find.byType(SavingsButton), findsOneWidget);
+      
+      // V1 uses Settings button instead of AppBar
+      expect(find.byIcon(Icons.settings), findsOneWidget);
       
       // Verify button text label IS present (V1 design)
       expect(find.text('터치해서 ₩1,000 저축하기'), findsOneWidget);
@@ -55,10 +57,10 @@ void main() {
       expect(scaffoldRect.height, lessThanOrEqualTo(852));
       
       // Verify all essential elements are visible within screen bounds
-      final appBar = find.byType(AppBar);
-      final appBarRect = tester.getRect(appBar);
-      expect(appBarRect.top, greaterThanOrEqualTo(0));
-      expect(appBarRect.bottom, lessThanOrEqualTo(852));
+      final settingsButton = find.byIcon(Icons.settings);
+      final settingsRect = tester.getRect(settingsButton);
+      expect(settingsRect.top, greaterThanOrEqualTo(0));
+      expect(settingsRect.bottom, lessThanOrEqualTo(852));
       
       final progressDisplay = find.byType(ProgressDisplay);
       final progressRect = tester.getRect(progressDisplay);
@@ -95,7 +97,7 @@ void main() {
       await tester.pumpAndSettle();
       
       // Verify essential V1 elements are present
-      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byIcon(Icons.settings), findsOneWidget);
       expect(find.byType(ProgressDisplay), findsOneWidget);
       expect(find.byType(SavingsButton), findsOneWidget);
       
@@ -111,10 +113,10 @@ void main() {
       expect(scaffoldRect.height, lessThanOrEqualTo(480));
       
       // Verify all essential elements are visible within 480px height bounds
-      final appBar = find.byType(AppBar);
-      final appBarRect = tester.getRect(appBar);
-      expect(appBarRect.top, greaterThanOrEqualTo(0));
-      expect(appBarRect.bottom, lessThanOrEqualTo(480));
+      final settingsButton = find.byIcon(Icons.settings);
+      final settingsRect = tester.getRect(settingsButton);
+      expect(settingsRect.top, greaterThanOrEqualTo(0));
+      expect(settingsRect.bottom, lessThanOrEqualTo(480));
       
       final progressDisplay = find.byType(ProgressDisplay);
       final progressRect = tester.getRect(progressDisplay);
@@ -166,29 +168,28 @@ void main() {
       await tester.pumpAndSettle();
       
       // Find all major elements
-      final appBar = find.byType(AppBar);
+      final settingsButton = find.byIcon(Icons.settings);
       final progressDisplay = find.byType(ProgressDisplay);
       final savingsButton = find.byType(SavingsButton);
       final buttonText = find.text('터치해서 ₩1,000 저축하기');
       
       // Get their positions
-      final appBarRect = tester.getRect(appBar);
+      final settingsRect = tester.getRect(settingsButton);
       final progressRect = tester.getRect(progressDisplay);
       final buttonRect = tester.getRect(savingsButton);
       final textRect = tester.getRect(buttonText);
       
-      // Verify proper vertical order: appbar -> progress -> button -> text
-      expect(appBarRect.bottom, lessThanOrEqualTo(progressRect.top));
+      // Verify proper vertical positioning: settings at top, progress -> button -> text in main area
+      expect(settingsRect.top, lessThan(progressRect.top)); // Settings positioned above main content
       expect(progressRect.bottom, lessThanOrEqualTo(buttonRect.top));
       expect(buttonRect.bottom, lessThanOrEqualTo(textRect.top));
       
-      // Verify reasonable spacing between elements (should be optimized for small screen)
-      expect(progressRect.top - appBarRect.bottom, greaterThan(5)); // Reduced spacing
+      // Verify reasonable spacing between main elements (should be optimized for small screen)
       expect(buttonRect.top - progressRect.bottom, greaterThan(10)); // Reduced spacing
       expect(textRect.top - buttonRect.bottom, greaterThan(5)); // Reduced spacing
     });
 
-    testWidgets('should maintain V1 design principles on small screens (AppBar, full layout)', (WidgetTester tester) async {
+    testWidgets('should maintain V1 design principles on small screens (fullscreen layout with settings button)', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 480));
       
       await tester.pumpWidget(
@@ -210,8 +211,8 @@ void main() {
       
       // Verify V1 design characteristics are maintained at small screen size
       
-      // AppBar present (V1 design principle)
-      expect(find.byType(AppBar), findsOneWidget);
+      // Settings button present (V1 fullscreen design principle)
+      expect(find.byIcon(Icons.settings), findsOneWidget);
       
       // Full progress display (not simplified like V2)
       expect(find.byType(ProgressDisplay), findsOneWidget);
@@ -222,14 +223,14 @@ void main() {
       // Button text label present (V1 design)
       expect(find.text('터치해서 ₩1,000 저축하기'), findsOneWidget);
       
-      // AppBar should have reasonable height even on small screen
-      final appBar = find.byType(AppBar);
-      final appBarRect = tester.getRect(appBar);
-      expect(appBarRect.height, greaterThan(30)); // Minimum usable height
-      expect(appBarRect.height, lessThan(100)); // Not too large on small screen
+      // Settings button should be positioned in top-right corner
+      final settingsButton = find.byIcon(Icons.settings);
+      final settingsRect = tester.getRect(settingsButton);
+      expect(settingsRect.top, lessThan(100)); // Near top of screen
+      expect(settingsRect.right, greaterThan(700)); // Positioned near right edge
       
-      // Verify app title is present in AppBar
-      expect(find.text('One-Touch Savings'), findsOneWidget);
+      // Verify that V1 uses fullscreen layout (no app title in AppBar since there's no AppBar)
+      expect(find.text('One-Touch Savings'), findsNothing);
     });
 
     testWidgets('should handle various card layouts properly on small screen', (WidgetTester tester) async {

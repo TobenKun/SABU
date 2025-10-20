@@ -206,13 +206,13 @@ Independent Test: Switch between V1 and V2 and verify data consistency and inter
 
 ### Tests for User Story 4 (write first)
 
-- [ ] T016 [P] [US4] Unit tests for design version service
+- [x] T016 [P] [US4] Unit tests for design version service
   - Create `/Users/sanghyunshin/fock/sabu/test/unit_test/design_version_service_test.dart`
   - Cover defaults (existing → V1, new → V2), persistence, corrupted values fallback
-- [ ] T017 [P] [US4] Widget tests for toggle behavior
+- [x] T017 [P] [US4] Widget tests for toggle behavior
   - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/design_version_toggle_test.dart`
   - Verify UI reflects selected version and callback triggers
-- [ ] T018 [P] [US4] Integration test for version switching and data consistency
+- [x] T018 [P] [US4] Integration test for version switching and data consistency
   - Create `/Users/sanghyunshin/fock/sabu/test/integration_test/design_version_switching_test.dart`
   - Verify router shows appropriate screen when preference changes; savings data remains consistent
 
@@ -224,18 +224,46 @@ Independent Test: Switch between V1 and V2 and verify data consistency and inter
   - Add `/Users/sanghyunshin/fock/sabu/lib/services/design_version_service.dart` (SharedPreferences storage; defaults: existing → V1, new → V2; intro helpers)
 - [x] T021 [P] [US4] Implement design version toggle widget
   - Add `/Users/sanghyunshin/fock/sabu/lib/widgets/design_version_toggle.dart` (two radio options; calls `onVersionChanged`)
-- [ ] T022 [US4] Add router to choose V1/V2 at app start
+- [x] T022 [US4] Add router to choose V1/V2 at app start
   - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart` to add `HomeScreenRouter` that returns `HomeScreen` or `HomeScreenV2` based on `DesignVersionService().getCurrentDesignVersion()`
   - Import `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart` and `/Users/sanghyunshin/fock/sabu/lib/services/design_version_service.dart`
-- [ ] T023 [US4] Switch app entry to router and add settings route
+- [x] T023 [US4] Switch app entry to router and add settings route
   - Edit `/Users/sanghyunshin/fock/sabu/lib/main.dart`:
     - Replace `home: const HomeScreen()` with `home: const HomeScreenRouter()`
     - Add `routes['/settings']` → settings screen
-- [ ] T024 [P] [US4] Provide minimal settings screen to host the toggle
-  - Add `/Users/sanghyunshin/fock/sabu/lib/screens/settings_screen.dart` with `DesignVersionToggle`
-  - On change: call `DesignVersionService().setDesignVersion(newVersion)` and navigate to home
+- [x] T024 [P] [US4] Provide minimal settings screen to host the toggle (COMPLETED)
 
-Checkpoint: US4 independently testable — users can switch V1/V2 with persisted preference and correct routing
+  - Added `/Users/sanghyunshin/fock/sabu/lib/screens/settings_screen.dart` with `DesignVersionToggle`
+  - Implemented StatefulWidget with version loading, change handling, and user feedback
+  - On change: calls `DesignVersionService().setDesignVersion(newVersion)` with success/error feedback
+
+- [x] T024a [P] [US4] Add settings access to V2 home screen
+
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen_v2.dart`:
+    - Add Positioned widget in top-right corner with settings IconButton
+    - Use small, subtle icon (Icons.settings, size: 20, color: Colors.grey[600])
+    - Position: top: 40, right: 16 (below status bar, inside SafeArea)
+    - OnPressed: `Navigator.pushNamed(context, '/settings')`
+    - Maintain V2 simplified design principles
+  - Test: User can easily access settings without disrupting V2 clean layout
+
+- [x] T024b [P] [US4] Remove AppBar from V1 and add settings access
+
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/home_screen.dart`:
+    - Remove AppBar from Scaffold
+    - Add same settings icon pattern as V2 (top-right corner positioning)
+    - Adjust top padding/spacing since AppBar is removed
+    - Update small screen layout to account for no AppBar
+  - Test: V1 maintains functionality without AppBar, settings accessible
+
+- [x] T024c [P] [US4] Improve settings navigation experience
+  - Edit `/Users/sanghyunshin/fock/sabu/lib/screens/settings_screen.dart`:
+    - After version change, show snackbar: "인터페이스가 변경되었습니다"
+    - Optional: Add helper text explaining restart may be needed for full effect
+  - Test: Settings changes provide clear user feedback
+  - Test: Navigation between V1/V2 works seamlessly after settings change
+
+Checkpoint: US4 완전히 구현됨 — 사용자가 V1/V2를 자유롭게 전환 가능, 설정 지속, 일관된 UI 패턴
 
 ---
 

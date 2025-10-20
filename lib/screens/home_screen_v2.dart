@@ -38,10 +38,18 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
   void initState() {
     super.initState();
     _loadProgress();
-    _initializeAnimation();
+    // Initialize animation asynchronously without blocking initState
+    _initializeAnimation().catchError((e) {
+      // Gracefully handle initialization errors
+      if (mounted) {
+        setState(() {
+          _currentAnimationLevel = TurtleAnimationLevel.idle;
+        });
+      }
+    });
   }
 
-  void _initializeAnimation() async {
+  Future<void> _initializeAnimation() async {
     // Start periodic updates for animation step-down
     _animationService.startPeriodicUpdates();
 
@@ -55,9 +63,18 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
     });
 
     // Get initial animation level (this will trigger loading from prefs)
-    _currentAnimationLevel = await _animationService.getInitialAnimationLevel();
-    if (mounted) {
-      setState(() {});
+    try {
+      _currentAnimationLevel = await _animationService.getInitialAnimationLevel();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      // Fallback to idle if initialization fails
+      if (mounted) {
+        setState(() {
+          _currentAnimationLevel = TurtleAnimationLevel.idle;
+        });
+      }
     }
   }
 
@@ -175,11 +192,14 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
       // Horizontal layout for small screens with SafeArea
       return Scaffold(
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+          child: Stack(
+            children: [
+              // Main content
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                 const SizedBox(height: 19), // Reduced by 1px to fix overflow
                 
                 // Top row: Progress display (left) + Usage stats (right)
@@ -273,11 +293,29 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ],
+                     ],
+                   ),
+                 ],
+               ),
+             ),
+              
+              // Settings button positioned in top-right corner
+              Positioned(
+                top: 40,
+                right: 16,
+                child: IconButton(
+                  icon: Icon(
+                    Icons.settings,
+                    size: 20,
+                    color: Colors.grey[600],
                   ),
-                ],
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/settings');
+                  },
+                ),
               ),
-            ),
+            ],
+          ),
         ),
       );
     }
@@ -285,20 +323,23 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
     // Regular layout for normal screens
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - 
-                          MediaQuery.of(context).padding.top - 
-                          MediaQuery.of(context).padding.bottom - 32, // SafeArea + padding
-              ),
-              child: IntrinsicHeight(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+        child: Stack(
+          children: [
+            // Main content
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height - 
+                              MediaQuery.of(context).padding.top - 
+                              MediaQuery.of(context).padding.bottom - 32, // SafeArea + padding
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                     // Simplified Progress Display (amount only)
                     SimplifiedProgressDisplay(
                       currentAmount: _progress.totalSavings,
@@ -357,11 +398,29 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+            
+            // Settings button positioned in top-right corner
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: Icon(
+                  Icons.settings,
+                  size: 20,
+                  color: Colors.grey[600],
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/settings');
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
