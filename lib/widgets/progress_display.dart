@@ -9,6 +9,8 @@ class ProgressDisplay extends StatefulWidget {
   final bool showAnimation;
   final Duration animationDuration;
   final VoidCallback? onAnimationComplete;
+  final bool isCompact; // For small screen layouts
+  final bool ultraCompact; // For very small screens - V2 style
 
   const ProgressDisplay({
     super.key,
@@ -18,6 +20,8 @@ class ProgressDisplay extends StatefulWidget {
     this.showAnimation = true,
     this.animationDuration = const Duration(milliseconds: 600), // Reduced for better performance
     this.onAnimationComplete,
+    this.isCompact = false, // Default to normal size
+    this.ultraCompact = false, // Default to normal size
   });
 
   @override
@@ -140,21 +144,97 @@ class _ProgressDisplayState extends State<ProgressDisplay>
   // Optimized build method with RepaintBoundary for performance
   @override
   Widget build(BuildContext context) {
+    // V2-style ultra compact mode for very small screens
+    if (widget.ultraCompact) {
+      return RepaintBoundary(
+        child: Container(
+          key: const Key('progress_display'),
+          height: 100,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '지금까지 저축한 금액',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Flexible(
+                child: AnimatedBuilder(
+                  animation: _counterAnimation,
+                  builder: (context, child) {
+                    final currentValue = _counterAnimation.value;
+                    if (_cachedCounterText == null || 
+                        !_cachedCounterText!.contains(currentValue.toString())) {
+                      _cachedCounterText = _formatCurrency(currentValue);
+                    }
+                    
+                    return Text(
+                      _cachedCounterText!,
+                      key: const Key('progress_counter'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4CAF50),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Ultra compact mode dimensions for small screens (800x480)
+    final double padding = widget.isCompact ? 8 : 24;
+    final double counterHeight = widget.isCompact ? 24 : 50;
+    final double counterFontSize = widget.isCompact ? 18 : 36;
+    final double targetHeight = widget.isCompact ? 14 : 25;
+    final double targetFontSize = widget.isCompact ? 10 : 16;
+    final double spacingLarge = widget.isCompact ? 6 : 20;
+    final double spacingSmall = widget.isCompact ? 2 : 8;
+    final double spacingMedium = widget.isCompact ? 3 : 12;
+    final double progressBarHeight = widget.isCompact ? 6 : 12;
+    final double percentageHeight = widget.isCompact ? 16 : 30;
+    final double percentageFontSize = widget.isCompact ? 12 : 20;
+    final double borderRadius = widget.isCompact ? 8 : 16;
+    
     return RepaintBoundary(
       child: SizedBox(
         width: double.infinity,
         child: Container(
           key: const Key('progress_display'),
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(borderRadius),
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withValues(alpha: 0.1),
-                spreadRadius: 2,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                spreadRadius: widget.isCompact ? 1 : 2,
+                blurRadius: widget.isCompact ? 4 : 8,
+                offset: Offset(0, widget.isCompact ? 1 : 2),
               ),
             ],
           ),
@@ -164,7 +244,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
               // Optimized animated counter with RepaintBoundary
               RepaintBoundary(
                 child: SizedBox(
-                  height: 50, // Fixed height for consistent sizing
+                  height: counterHeight,
                   child: AnimatedBuilder(
                     animation: _counterAnimation,
                     builder: (context, child) {
@@ -179,10 +259,10 @@ class _ProgressDisplayState extends State<ProgressDisplay>
                         _cachedCounterText!,
                         key: const Key('progress_counter'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 36,
+                        style: TextStyle(
+                          fontSize: counterFontSize,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4CAF50),
+                          color: const Color(0xFF4CAF50),
                         ),
                       );
                     },
@@ -190,32 +270,32 @@ class _ProgressDisplayState extends State<ProgressDisplay>
                 ),
               ),
             
-            const SizedBox(height: 8),
+            SizedBox(height: spacingSmall),
             
               // Static target display (no need to rebuild)
               SizedBox(
-                height: 25, // Fixed height for consistent sizing
+                height: targetHeight,
                 child: Text(
                   _cachedTargetText!,
                   key: const Key('target_display'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: targetFontSize,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             
-            const SizedBox(height: 20),
+            SizedBox(height: spacingLarge),
             
             // Optimized progress bar with RepaintBoundary
             RepaintBoundary(
               child: Container(
                 key: const Key('progress_container'),
-                height: 12,
+                height: progressBarHeight,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(progressBarHeight / 2),
                   color: Colors.grey[200],
                 ),
                 child: AnimatedBuilder(
@@ -227,7 +307,7 @@ class _ProgressDisplayState extends State<ProgressDisplay>
                       child: Container(
                         key: const Key('progress_bar'),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(progressBarHeight / 2),
                           gradient: const LinearGradient(
                             colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
                             begin: Alignment.centerLeft,
@@ -241,12 +321,12 @@ class _ProgressDisplayState extends State<ProgressDisplay>
               ),
             ),
             
-            const SizedBox(height: 12),
+            SizedBox(height: spacingMedium),
             
               // Optimized percentage display
               RepaintBoundary(
                 child: SizedBox(
-                  height: 30, // Fixed height for consistent sizing
+                  height: percentageHeight,
                   child: AnimatedBuilder(
                     animation: _progressAnimation,
                     builder: (context, child) {
@@ -255,10 +335,10 @@ class _ProgressDisplayState extends State<ProgressDisplay>
                         '$percentage%',
                         key: const Key('percentage_display'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: percentageFontSize,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF4CAF50),
+                          color: const Color(0xFF4CAF50),
                         ),
                       );
                     },

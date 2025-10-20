@@ -26,6 +26,9 @@ android {
     namespace "com.example.one_touch_savings"
     compileSdk 36
     ndkVersion flutter.ndkVersion
+    
+    // Flutter 호환성을 위한 빌드 출력 경로 설정
+    buildDir = new File(rootProject.projectDir, "../build/app")
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

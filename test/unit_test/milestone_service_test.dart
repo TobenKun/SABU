@@ -9,16 +9,22 @@ void main() {
     setUpAll(() {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
-      DatabaseService.useTestDatabase();
     });
 
     setUp(() async {
+      // Always use fresh in-memory database for each test
+      DatabaseService.useTestDatabase();
       databaseService = DatabaseService();
       await databaseService.resetUserData();
+      // Ensure database is fully initialized
+      await Future.delayed(const Duration(milliseconds: 50));
     });
 
     tearDown(() async {
+      // Properly close database connection
       await DatabaseService.closeDatabase();
+      // Allow time for cleanup
+      await Future.delayed(const Duration(milliseconds: 50));
     });
 
     test('isMilestone detects 10,000원 increments correctly', () {
@@ -58,6 +64,8 @@ void main() {
       // Save 9 times to get to 9,000원
       for (int i = 0; i < 9; i++) {
         await databaseService.saveMoney();
+        // Small delay to prevent database locking issues
+        await Future.delayed(const Duration(milliseconds: 5));
       }
 
       // 10th save should trigger milestone
@@ -73,6 +81,8 @@ void main() {
       // Save 19 times to get to 19,000원
       for (int i = 0; i < 19; i++) {
         await databaseService.saveMoney();
+        // Small delay to prevent database locking issues
+        await Future.delayed(const Duration(milliseconds: 2));
       }
 
       // 20th save should trigger 20,000원 milestone
@@ -100,6 +110,8 @@ void main() {
       // Save to first milestone
       for (int i = 0; i < 10; i++) {
         await databaseService.saveMoney();
+        // Small delay to prevent database locking issues
+        await Future.delayed(const Duration(milliseconds: 3));
       }
 
       // Check progress has milestone recorded
@@ -110,6 +122,8 @@ void main() {
       // Continue to second milestone
       for (int i = 0; i < 10; i++) {
         await databaseService.saveMoney();
+        // Small delay to prevent database locking issues
+        await Future.delayed(const Duration(milliseconds: 3));
       }
 
       final progress2 = await databaseService.getCurrentProgress();

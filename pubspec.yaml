@@ -14,6 +14,7 @@ dependencies:
   flutter_animate: ^4.2.0+1
   intl: ^0.18.1
   path: ^1.8.3
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +26,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/characters/turtle/idle/
+    - assets/images/characters/turtle/walking/
+    - assets/images/characters/turtle/running/

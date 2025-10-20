@@ -3,7 +3,11 @@ import 'package:one_touch_savings/models/savings_session.dart';
 
 void main() {
   group('SavingsSession', () {
-    final testTimestamp = DateTime(2024, 1, 15, 10, 30);
+    late DateTime testTimestamp;
+    
+    setUp(() {
+      testTimestamp = DateTime(2024, 1, 15, 10, 30);
+    });
     
     group('Constructor Tests', () {
       test('should create SavingsSession with all parameters', () {

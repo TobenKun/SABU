@@ -88,3 +88,6 @@ node_modules/
 dist/
 build/
 out/
+
+# Temporary image files
+tmp_img/

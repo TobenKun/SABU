@@ -4,10 +4,14 @@ import '../services/feedback_service.dart';
 
 class SavingsButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final double? width;
+  final double? height;
   
   const SavingsButton({
     super.key,
     required this.onPressed,
+    this.width,
+    this.height,
   });
 
   @override
@@ -143,8 +147,8 @@ class _SavingsButtonState extends State<SavingsButton>
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOutQuart,
           child: Container(
-            width: 200,
-            height: 200,
+            width: widget.width ?? 200,
+            height: widget.height ?? 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _isProcessing 
