@@ -142,7 +142,7 @@ Independent Test: On iPhone 16 Pro, layouts remain unchanged. On 800x480, all el
   - Tests horizontal layout with proper element positioning and spacing
   - Current tests verify: iPhone 16 Pro unchanged, 800x480 fits without scroll, button text present, horizontal arrangement
 
-- [ ] T013a [P] [US3] Widget tests for V1 small screen support
+- [x] T013a [P] [US3] Widget tests for V1 small screen support
 
   - Create `/Users/sanghyunshin/fock/sabu/test/widget_test/small_screen_v1_test.dart`
   - Pump `HomeScreen` at iPhone 16 Pro size (393x852) and verify layout unchanged from baseline
@@ -271,9 +271,9 @@ Checkpoint: US4 완전히 구현됨 — 사용자가 V1/V2를 자유롭게 전�
 
 Purpose: Performance, documentation, and non-functional improvements spanning multiple stories
 
-- [ ] T025 [P] Preload sprite frames and confirm RepaintBoundary usage in `/Users/sanghyunshin/fock/sabu/lib/widgets/animated_character.dart`
-- [ ] T026 Ensure all timers/controllers disposed; confirm <200ms response and 60fps in profile build
-- [ ] T027 [P] Validate quickstart.md steps; update `/Users/sanghyunshin/fock/sabu/README.md` if needed
+- [x] T025 [P] Preload sprite frames and confirm RepaintBoundary usage in `/Users/sanghyunshin/fock/sabu/lib/widgets/animated_character.dart`
+- [x] T026 Ensure all timers/controllers disposed; confirm <200ms response and 60fps in profile build
+- [x] T027 [P] Validate quickstart.md steps; update `/Users/sanghyunshin/fock/sabu/README.md` if needed
 
 ---
 

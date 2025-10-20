@@ -92,26 +92,6 @@ class AnimationTimerService {
     _animationController.add(newLevel);
   }
 
-  // DEBUG: Method to manually set animation level (TODO: Remove in production)
-  Future<void> setAnimationLevel(TurtleAnimationLevel level) async {
-    await _ensureInitialized();
-    
-    final now = DateTime.now();
-    _currentState = _currentState?.copyWith(
-      level: level,
-      levelStartTime: now,
-    ) ?? AnimationState(
-      level: level,
-      lastActivity: now,
-      totalActivityCount: 0,
-      recentActivities: [],
-      levelStartTime: now,
-    );
-
-    await _saveStateToPrefs();
-    _animationController.add(level);
-  }
-
   void startPeriodicUpdates() {
     _periodicTimer?.cancel();
     
@@ -137,7 +117,6 @@ class AnimationTimerService {
       
       if (isTestEnvironment) {
         // Skip periodic updates in test environment to prevent hanging
-        print('Skipping periodic updates in test environment');
         return;
       }
       
@@ -147,7 +126,6 @@ class AnimationTimerService {
       );
     } catch (e) {
       // Graceful fallback if timer creation fails
-      print('Failed to start periodic updates: $e');
     }
   }
 
@@ -242,7 +220,7 @@ class AnimationTimerService {
             _currentState!.levelStartTime!.millisecondsSinceEpoch);
       }
     } catch (e) {
-      print('Failed to save animation state: $e');
+      // Failed to save animation state - silent failure for robustness
     }
   }
 }

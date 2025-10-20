@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../../lib/models/design_version_setting.dart';
-import '../../lib/services/design_version_service.dart';
-import '../../lib/services/database_service.dart';
+import 'package:one_touch_savings/models/design_version_setting.dart';
+import 'package:one_touch_savings/services/design_version_service.dart';
+import 'package:one_touch_savings/services/database_service.dart';
 
 void main() {
   group('DesignVersionService', () {
@@ -13,13 +13,13 @@ void main() {
       // Initialize database for testing
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
-      
+
       // Use custom test database
       DatabaseService.useCustomTestDatabase(':memory:');
-      
+
       service = DesignVersionService();
       SharedPreferences.setMockInitialValues({});
-      
+
       // Reset mocks for clean state
       DesignVersionService.resetMocks();
     });
@@ -63,7 +63,7 @@ void main() {
     group('setDesignVersion', () {
       test('persists version to SharedPreferences', () async {
         await service.setDesignVersion(DesignVersion.v2);
-        
+
         final prefs = await SharedPreferences.getInstance();
         final stored = prefs.getString('design_version_preference');
         expect(stored, 'v2');
@@ -73,10 +73,10 @@ void main() {
         final beforeTime = DateTime.now().millisecondsSinceEpoch;
         await service.setDesignVersion(DesignVersion.v1);
         final afterTime = DateTime.now().millisecondsSinceEpoch;
-        
+
         final prefs = await SharedPreferences.getInstance();
         final timestamp = prefs.getInt('last_version_switch_timestamp');
-        
+
         expect(timestamp, isNotNull);
         expect(timestamp!, greaterThanOrEqualTo(beforeTime));
         expect(timestamp, lessThanOrEqualTo(afterTime));
@@ -85,11 +85,11 @@ void main() {
       test('increments switch count', () async {
         // First switch
         await service.setDesignVersion(DesignVersion.v2);
-        
+
         final prefs = await SharedPreferences.getInstance();
         final count1 = prefs.getInt('version_switch_count') ?? 0;
         expect(count1, 1);
-        
+
         // Second switch
         await service.setDesignVersion(DesignVersion.v1);
         final count2 = prefs.getInt('version_switch_count') ?? 0;
@@ -116,7 +116,7 @@ void main() {
     group('markV2IntroductionSeen', () {
       test('persists introduction seen flag', () async {
         await service.markV2IntroductionSeen();
-        
+
         final prefs = await SharedPreferences.getInstance();
         final seen = prefs.getBool('has_seen_v2_introduction');
         expect(seen, true);
@@ -141,10 +141,10 @@ void main() {
     group('performFirstRunSetup', () {
       test('sets up defaults for new user', () async {
         await service.performFirstRunSetup();
-        
+
         final version = await service.getCurrentDesignVersion();
         expect(version, DesignVersion.v2);
-        
+
         final prefs = await SharedPreferences.getInstance();
         final firstRunComplete = prefs.getBool('is_first_run_completed');
         expect(firstRunComplete, true);
@@ -155,7 +155,7 @@ void main() {
         DesignVersionService.setMockFirstTimeUser(false);
 
         await service.performFirstRunSetup();
-        
+
         final version = await service.getCurrentDesignVersion();
         expect(version, DesignVersion.v1);
       });
@@ -164,9 +164,10 @@ void main() {
     group('getUsageStats', () {
       test('returns empty stats for new user', () async {
         final stats = await service.getUsageStats();
-        
+
         expect(stats.totalSwitches, 0);
-        expect(stats.preferredVersion, DesignVersion.v2); // Default for new user
+        expect(
+            stats.preferredVersion, DesignVersion.v2); // Default for new user
       });
 
       test('returns accurate stats after switches', () async {
@@ -176,7 +177,7 @@ void main() {
         await service.setDesignVersion(DesignVersion.v1);
         await Future.delayed(const Duration(milliseconds: 10));
         await service.setDesignVersion(DesignVersion.v2);
-        
+
         final stats = await service.getUsageStats();
         expect(stats.totalSwitches, 3);
         expect(stats.lastSwitchTimestamp, isNotNull);
@@ -194,14 +195,15 @@ void main() {
       test('handles corrupted preferences gracefully', () async {
         SharedPreferences.setMockInitialValues({
           'design_version_preference': 123, // Wrong type - should be String
-          'last_version_switch_timestamp': 'not_a_number', // Wrong type - should be int
+          'last_version_switch_timestamp':
+              'not_a_number', // Wrong type - should be int
           'version_switch_count': 999, // Correct type - int
         });
 
         // Should not throw and should provide sensible defaults
         final version = await service.getCurrentDesignVersion();
         expect(version, DesignVersion.v1); // Fallback to safe default
-        
+
         // Should handle setting new version even with corrupted data
         await service.setDesignVersion(DesignVersion.v2);
         final newVersion = await service.getCurrentDesignVersion();
@@ -210,3 +212,4 @@ void main() {
     });
   });
 }
+

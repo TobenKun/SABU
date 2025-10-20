@@ -42,8 +42,8 @@ void main() {
     testWidgets('V2 minimal load test', (WidgetTester tester) async {
       // Simple test to see if V2 can load at all
       await tester.pumpWidget(
-        MaterialApp(
-          home: const HomeScreenV2(),
+        const MaterialApp(
+          home: HomeScreenV2(),
           debugShowCheckedModeBanner: false,
         ),
       );
@@ -61,8 +61,8 @@ void main() {
       await databaseService.resetUserData();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: const HomeScreenV2(),
+        const MaterialApp(
+          home: HomeScreenV2(),
           debugShowCheckedModeBanner: false,
         ),
       );
