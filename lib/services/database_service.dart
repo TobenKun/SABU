@@ -29,12 +29,10 @@ class DatabaseException implements Exception {
 
 class DatabaseService {
   static Database? _database;
-  static String? _testDbPath; // For test isolation
-  
-  static Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+  static String? _testDbPath;
+
+  Future<Database> get database async {
+    return await _initDatabase();
   }
   
   static Future<Database> _initDatabase() async {
@@ -92,7 +90,7 @@ class DatabaseService {
       // Initialize progress row
       await txn.insert('user_progress', {
         'id': 1,
-        'last_save_date': DateTime.now().millisecondsSinceEpoch,
+        'last_save_date': 0,  // Set to 0 to detect first save
       });
     });
   }
@@ -149,6 +147,7 @@ class DatabaseService {
                 END,
                 last_save_date = ?,
                 current_streak = CASE
+                  WHEN last_save_date = 0 THEN 1
                   WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
                   THEN current_streak
                   WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
@@ -157,6 +156,7 @@ class DatabaseService {
                 END,
                 longest_streak = MAX(longest_streak, 
                   CASE
+                    WHEN last_save_date = 0 THEN 1
                     WHEN date(last_save_date/1000, 'unixepoch') = date('now') 
                     THEN current_streak
                     WHEN date(last_save_date/1000, 'unixepoch', '+1 day') = date('now')
@@ -265,6 +265,52 @@ class DatabaseService {
       },
       metadata: {'operation_type': 'get_progress'},
     );
+  }
+  
+  static Future<int> getValidatedCurrentStreak() async {
+    return await PerformanceService.monitorDatabaseOperation(
+      'getValidatedCurrentStreak',
+      () async {
+        try {
+          final progress = await DatabaseService().getCurrentProgress();
+          
+          if (progress.lastSaveDate.millisecondsSinceEpoch == 0) {
+            return 0; // 아직 저축 안함
+          }
+          
+          final lastSaveDay = progress.lastSaveDate;
+          final today = DateTime.now();
+          final yesterday = today.subtract(const Duration(days: 1));
+          
+          // 마지막 저축이 오늘이면 현재 스트릭 유지
+          if (_isSameDay(lastSaveDay, today)) {
+            return progress.currentStreak;
+          }
+          
+          // 마지막 저축이 어제면 연속 가능 상태 (아직 오늘 저축 안함)
+          if (_isSameDay(lastSaveDay, yesterday)) {
+            return progress.currentStreak;
+          }
+          
+          // 그 외의 경우 스트릭 깨짐
+          return 0;
+          
+        } catch (e) {
+          throw DatabaseException(
+            DatabaseError.connectionFailed,
+            'Failed to validate current streak: ${e.toString()}',
+            e,
+          );
+        }
+      },
+      metadata: {'operation_type': 'validate_streak'},
+    );
+  }
+  
+  static bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+           date1.month == date2.month &&
+           date1.day == date2.day;
   }
   
   Future<List<SavingsSession>> getSavingsHistory({

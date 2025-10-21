@@ -33,6 +33,7 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
   TurtleAnimationLevel _currentAnimationLevel = TurtleAnimationLevel.idle;
   bool _isLoading = false;
   String? _errorMessage;
+  int _validatedStreak = 0;
 
   @override
   void initState() {
@@ -88,9 +89,11 @@ class _HomeScreenV2State extends State<HomeScreenV2> {
     try {
       LoggerService.debug('Loading user progress for V2');
       final progress = await _databaseService.getCurrentProgress();
+      final validatedStreak = await DatabaseService.getValidatedCurrentStreak();
       if (mounted) {
         setState(() {
           _progress = progress;
+          _validatedStreak = validatedStreak;
         });
       }
       LoggerService.info(

@@ -180,12 +180,12 @@ void main() {
       expect(find.text('인터페이스 버전'), findsOneWidget);
 
       // Check for V1 option
-      expect(find.text('V1 - 전체 기능'), findsOneWidget);
-      expect(find.text('모든 차트와 통계 표시'), findsOneWidget);
+      expect(find.text('V1 - 기본에 충실하게'), findsOneWidget);
+      expect(find.text('응원 메시지와 목표 달성 축하 팝업이 표시됩니다.'), findsOneWidget);
 
       // Check for V2 option
-      expect(find.text('V2 - 간단한 화면'), findsOneWidget);
-      expect(find.text('필수 기능만 + 귀여운 거북이'), findsOneWidget);
+      expect(find.text('V2 - 귀여운 거북이'), findsOneWidget);
+      expect(find.text('응원 메시지도, 축하 팝업도 없습니다.\n그래도 거북이는 귀엽죠?'), findsOneWidget);
     });
 
     testWidgets('has proper card styling', (WidgetTester tester) async {

@@ -5,8 +5,9 @@ import 'screens/home_screen_v2.dart';
 import 'screens/settings_screen.dart';
 import 'services/performance_service.dart';
 import 'services/logger_service.dart';
+import 'services/design_version_service.dart';
 
-void main() {
+void main() async {
   // Initialize Flutter bindings first
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -25,6 +26,9 @@ void main() {
 
   // Start memory monitoring
   PerformanceService.startMemoryMonitoring();
+
+  // Initialize design version settings for first-time users
+  await DesignVersionService().performFirstRunSetup();
 
   runApp(const SavingsApp());
 }

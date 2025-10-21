@@ -31,7 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   bool _isLoading = false;
   String? _errorMessage;
-  int? _currentMilestone; // Track current milestone being shown
+  int? _currentMilestone;
+  int _validatedStreak = 0;
 
   @override
   void initState() {
@@ -43,9 +44,11 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       LoggerService.debug('Loading user progress');
       final progress = await _databaseService.getCurrentProgress();
+      final validatedStreak = await DatabaseService.getValidatedCurrentStreak();
       if (mounted) {
         setState(() {
           _progress = progress;
+          _validatedStreak = validatedStreak;
         });
       }
       LoggerService.info('Progress loaded successfully - Total: ₩${progress.totalSavings}');
@@ -259,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _buildStatColumn(
                 '연속 기록',
-                '${_progress.currentStreak}일',
+                '${_validatedStreak}일',
                 Icons.local_fire_department,
               ),
             ],
@@ -458,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             Text(
-                              '${_progress.currentStreak}일',
+                              '${_validatedStreak}일',
                               style: TextStyle(
                                 fontSize: 12, 
                                 color: Colors.grey[700],

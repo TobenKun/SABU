@@ -131,12 +131,12 @@ class KoreanNumberFormatter {
     
     if (percentage >= 100) {
       return '목표 달성! 축하합니다! 🎉';
-    } else if (percentage >= 90) {
+    } else if (percentage >= 80) {
       return '거의 다 왔어요! ${formatCurrency(remaining)} 남았습니다';
     } else if (percentage >= 50) {
-      return '절반 이상 달성! ${formatPercentage(percentage)} 완료';
+      return '절반 이상 달성! ${formatCurrency(remaining)} 남았습니다';
     } else if (percentage >= 25) {
-      return '좋은 시작이에요! ${formatPercentage(percentage)} 완료';
+      return '좋은 시작이에요! ${formatCurrency(remaining)} 남았습니다';
     } else {
       return '화이팅! ${formatCurrency(remaining)} 남았습니다';
     }

@@ -227,19 +227,19 @@ void main() {
         expect(result, '목표 달성! 축하합니다! 🎉');
       });
 
-      test('should show almost there message at 90%+', () {
+      test('should show almost there message at 80%+', () {
         final result = KoreanNumberFormatter.formatProgressMessageFromProgress(0.95, 500);
         expect(result, '거의 다 왔어요! ₩500 남았습니다');
       });
 
       test('should show halfway message at 50%+', () {
         final result = KoreanNumberFormatter.formatProgressMessageFromProgress(0.75, 2500);
-        expect(result, '절반 이상 달성! 75.0% 완료');
+        expect(result, '절반 이상 달성! ₩2,500 남았습니다');
       });
 
       test('should show good start message at 25%+', () {
         final result = KoreanNumberFormatter.formatProgressMessageFromProgress(0.30, 7000);
-        expect(result, '좋은 시작이에요! 30.0% 완료');
+        expect(result, '좋은 시작이에요! ₩7,000 남았습니다');
       });
 
       test('should show encouragement message below 25%', () {
@@ -262,7 +262,7 @@ void main() {
       test('should show correct progress at 15,000 (50% to second milestone)', () {
         // At 15,000 won, halfway to 20,000 milestone
         final result = KoreanNumberFormatter.formatProgressMessageFromProgress(0.5, 5000);
-        expect(result, '절반 이상 달성! 50.0% 완료');
+        expect(result, '절반 이상 달성! ₩5,000 남았습니다');
       });
 
       test('should show correct progress at 19,500 (95% to second milestone)', () {

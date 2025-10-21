@@ -27,8 +27,8 @@ class DesignVersionToggle extends StatelessWidget {
             const SizedBox(height: 8),
             // ignore: deprecated_member_use
             RadioListTile<DesignVersion>(
-              title: const Text('V1 - 전체 기능'),
-              subtitle: const Text('모든 차트와 통계 표시'),
+              title: const Text('V1 - 기본에 충실하게'),
+              subtitle: const Text('응원 메시지와 목표 달성 축하 팝업이 표시됩니다.'),
               value: DesignVersion.v1,
               // ignore: deprecated_member_use
               groupValue: currentVersion,
@@ -41,8 +41,8 @@ class DesignVersionToggle extends StatelessWidget {
             ),
             // ignore: deprecated_member_use
             RadioListTile<DesignVersion>(
-              title: const Text('V2 - 간단한 화면'),
-              subtitle: const Text('필수 기능만 + 귀여운 거북이'),
+              title: const Text('V2 - 귀여운 거북이'),
+              subtitle: const Text('응원 메시지도, 축하 팝업도 없습니다.\n그래도 거북이는 귀엽죠?'),
               value: DesignVersion.v2,
               // ignore: deprecated_member_use
               groupValue: currentVersion,

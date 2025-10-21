@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/user_progress.dart';
+import '../services/database_service.dart';
 
-class UsageStatsCard extends StatelessWidget {
+class UsageStatsCard extends StatefulWidget {
   final UserProgress progress;
   final bool ultraCompact;
 
@@ -10,6 +11,12 @@ class UsageStatsCard extends StatelessWidget {
     required this.progress,
     this.ultraCompact = false,
   });
+
+  @override
+  State<UsageStatsCard> createState() => _UsageStatsCardState();
+}
+
+class _UsageStatsCardState extends State<UsageStatsCard> {
 
   Widget _buildStatColumn(String label, String value, IconData icon) {
     return Column(
@@ -42,7 +49,12 @@ class UsageStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (ultraCompact) {
+    return FutureBuilder<int>(
+      future: DatabaseService.getValidatedCurrentStreak(),
+      builder: (context, snapshot) {
+        final validatedStreak = snapshot.data ?? widget.progress.currentStreak;
+        
+        if (widget.ultraCompact) {
       // Ultra-compact version for small screens with enhanced card design
       return Container(
         key: const Key('usage_stats_card'),
@@ -87,7 +99,7 @@ class UsageStatsCard extends StatelessWidget {
                     ],
                   ),
                     Text(
-                      '${progress.todaySessionCount}회',
+                      '${widget.progress.todaySessionCount}회',
                       style: TextStyle(
                         fontSize: 12, 
                         color: Colors.grey[700],
@@ -118,7 +130,7 @@ class UsageStatsCard extends StatelessWidget {
                     ],
                   ),
                     Text(
-                      '${progress.totalSessions}회',
+                      '${widget.progress.totalSessions}회',
                       style: TextStyle(
                         fontSize: 12, 
                         color: Colors.grey[700],
@@ -149,7 +161,7 @@ class UsageStatsCard extends StatelessWidget {
                     ],
                   ),
                     Text(
-                      '${progress.currentStreak}일',
+                      '${validatedStreak}일',
                       style: TextStyle(
                         fontSize: 12, 
                         color: Colors.grey[700],
@@ -186,22 +198,24 @@ class UsageStatsCard extends StatelessWidget {
           children: [
             _buildStatColumn(
               '오늘',
-              '${progress.todaySessionCount}회',
+              '${widget.progress.todaySessionCount}회',
               Icons.today,
             ),
             _buildStatColumn(
               '총 저축',
-              '${progress.totalSessions}회',
+              '${widget.progress.totalSessions}회',
               Icons.savings,
             ),
             _buildStatColumn(
               '연속 기록',
-              '${progress.currentStreak}일',
+              '${validatedStreak}일',
               Icons.local_fire_department,
             ),
           ],
         ),
       ),
+    );
+      },
     );
   }
 }
