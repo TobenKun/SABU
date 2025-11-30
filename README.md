@@ -9,10 +9,9 @@
 
 ## 📱 앱 실행 데모
 
-![사부 앱 실행 화면](docs/images/iPhone%2016%20Simulator%20Recording%20Nov%2030%202025.gif)
+<img src="/docs/images/iPhone%2016%20Simulator%20Recording%20Nov%2030%202025.gif" width="250">
 
 _V1/V2 디자인 전환 및 애니메이션 캐릭터 동작 데모_
-
 ## 🛠 기술적 도전과 해결
 
 ### 성능 최적화: 60fps + <200ms 응답시간 달성
