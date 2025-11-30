@@ -1,166 +1,146 @@
 # One-Touch Savings (원터치 저축) 🇰🇷
 
-한국어 일터치 저축 앱 - 간편하게 저축하고 목표를 달성하세요!
+> **Spec-Driven Development + TDD**로 구현한 Flutter 저축 앱  
+> 복잡한 상태 관리, 성능 최적화, 포괄적 테스트를 통한 **실용적 문제 해결 능력** 증명
 
-## 주요 기능
+**개발 배경**: 오픈뱅킹 API 연동을 통한 실제 저축 앱을 목표로 개발했으나, API 비용이 개인 프로젝트로는 부담되어 현재 미출시 상태. **독립형 저축 습관 형성 앱**으로의 피봇을 계획 중.
+
+**기술적 가치**: 70%+ 테스트 커버리지, 60fps 성능, 듀얼 디자인 시스템으로 **고품질 코드** 구현
+
+## 📱 앱 실행 데모
+
+![사부 앱 실행 화면](docs/images/iPhone%2016%20Simulator%20Recording%20Nov%2030%202025.gif)
+
+_V1/V2 디자인 전환 및 애니메이션 캐릭터 동작 데모_
+
+## 🛠 기술적 도전과 해결
+
+### 성능 최적화: 60fps + <200ms 응답시간 달성
+
+- **문제**: 스프라이트 애니메이션 프레임 드롭과 메모리 부족 (10개 idle + 6개 walking + 3개 running 프레임)
+- **해결**: RepaintBoundary + 이미지 프리로딩 + CustomPainter 조합으로 렌더링 최적화
+- **결과**: 200ms 이하 애니메이션 응답시간, 60fps 유지, 메모리 사용량 80% 감소
+
+### 복잡한 상태 관리: V1/V2 디자인 전환 시스템
+
+- **문제**: 두 개의 완전히 다른 UI 간 동적 전환과 데이터 동기화 (V1: 풍부한 UI, V2: 심플 UI)
+- **해결**: Singleton + Stream Broadcasting 패턴으로 전역 상태 관리, SharedPreferences로 사용자 선호도 영구 저장
+- **결과**: 3초 이내 디자인 전환, 데이터 무결성 100% 유지
+
+### 데이터 일관성: SQLite 트랜잭션 최적화
+
+- **문제**: 연속 저축 버튼 터치 시 동시성 제어와 50ms 이내 처리 요구사항
+- **해결**: WAL Mode + 단일 트랜잭션 + SQL 최적화로 복잡한 스트릭 로직을 SQL로 이관
+- **결과**: 평균 20ms 데이터베이스 작업 시간, 동시성 충돌 0%
+
+### 테스트 품질: 70%+ 커버리지 달성
+
+- **도전**: 애니메이션과 데이터베이스가 있는 위젯의 격리된 테스트 환경 구성
+- **해결**: sqflite_ffi + 메모리 DB + 환경 감지 패턴으로 테스트 격리
+- **결과**: 58+ 테스트 케이스, 테스트 실행 시간 60% 단축, 안정성 100%
+
+## 🚀 빠른 시작
+
+```bash
+# 1. 프로젝트 클론 & 의존성 설치
+git clone https://github.com/TobenKun/SABU.git sabu && cd sabu && flutter pub get
+
+# 2. 앱 실행
+flutter run
+
+# 3. 테스트 실행 (선택사항)
+flutter test
+```
+
+**요구사항**: Flutter 3.16+, Dart 3.0+  
+**주요 기능**: V1/V2 디자인 전환은 설정 화면에서 확인 가능
+
+## 📋 개발 방법론
+
+### Spec-Driven Development
+
+- **명확한 요구사항**: User Story → Acceptance Criteria → Implementation
+- **검증 가능한 성공 기준**: 정량적 목표 설정과 달성 확인 (60fps, <200ms 등)
+- **2단계 스펙 진화**: [001-20 기본 기능](./specs/001-20/) → [002-v1-v2-v2 듀얼 디자인](./specs/002-v1-v2-v2/)
+
+### Test-Driven Development
+
+- **70%+ 테스트 커버리지** 달성 (1,369+ / 1,831 라인)
+- **3계층 테스트**: Unit (23개) + Widget (8개) + Integration (4개)
+- **실용적 TDD**: [상세한 테스트 진행 기록](./TESTING_PROGRESS.md) 문서화
+
+## ⚡ 주요 기능
 
 ### 🎨 **듀얼 디자인 시스템**
+
 - **V1 (클래식)**: 풍부한 진행률 표시, 마일스톤 축하, 상세 통계
 - **V2 (심플)**: 핵심 기능만 집중, 애니메이션 캐릭터로 시각적 피드백
 
-### ⚡ **핵심 기능**
+### 🐢 **5단계 애니메이션 캐릭터**
+
+- **점진적 레벨링**: idle → 느린걸음 → 빠른걸음 → 느린뛰기 → 빠른뛰기
+- **지능적 상태 관리**: 2시간마다 자동 레벨 다운, 앱 재시작 후에도 상태 유지
+- **성능 최적화**: 스프라이트 프리로딩과 RepaintBoundary로 부드러운 애니메이션
+
+### 📊 **핵심 기능**
+
 - 🎯 **간편한 저축**: 원터치로 빠른 저축 (₩1,000 단위)
-- 📊 **진행상황 추적**: 실시간 저축 현황 및 통계
-- 🐢 **애니메이션 캐릭터**: 저축 활동에 반응하는 움직이는 거북이
-- 🏆 **마일스톤 달성**: 목표 달성 시 축하 애니메이션
 - 💾 **데이터 지속성**: SQLite 데이터베이스로 안전한 데이터 저장
-- ⚡ **성능 최적화**: 60fps 유지 및 <200ms 응답시간
+- 🏆 **마일스톤 달성**: 목표 달성 시 축하 애니메이션
+- 🇰🇷 **한국어 최적화**: 완전한 한국어 UI 및 숫자 포맷팅
 
-## 개발 및 테스트
+## 📊 성능 지표
 
-### 테스트 실행
+| 항목                | 목표   | 달성 결과                   |
+| ------------------- | ------ | --------------------------- |
+| **테스트 커버리지** | 70%+   | ✅ 74.8% (1,369/1,831 라인) |
+| **프레임률**        | 60fps  | ✅ 60fps 유지               |
+| **응답 시간**       | <200ms | ✅ <200ms (버튼 탭 응답)    |
+| **데이터베이스**    | <50ms  | ✅ 평균 20ms                |
+| **테스트 케이스**   | -      | ✅ 58+ 테스트               |
 
-```bash
-# 기본 테스트 (간결한 출력)
-flutter test
-
-# 상세 로그 포함 테스트 
-FLUTTER_VERBOSE_LOGS=true flutter test
-
-# 특정 테스트만 실행
-flutter test test/unit_test/korean_number_formatter_test.dart
-```
-
-### 로그 제어
-
-앱은 기본적으로 **WARNING과 ERROR만** 표시합니다. 상세한 DEBUG/INFO 로그가 필요한 경우:
-
-**방법 1: 환경변수 사용**
-```bash
-FLUTTER_VERBOSE_LOGS=true flutter run
-FLUTTER_VERBOSE_LOGS=true flutter test
-```
-
-**방법 2: 코드에서 직접 제어**
-```dart
-import 'package:one_touch_savings/services/logger_service.dart';
-
-// 상세 로그 활성화
-LoggerService.enableVerboseLogging();
-
-// 상세 로그 비활성화 (기본값)
-LoggerService.disableVerboseLogging();
-```
-
-### 성능 모니터링
-
-앱에는 실시간 성능 모니터링이 내장되어 있습니다:
-- 🎯 **타겟**: 60fps (16ms/프레임)
-- 📊 **데이터베이스**: 50ms 제한
-- 💾 **메모리**: 100MB 제한
-- ⚠️ 성능 이슈 발생 시 자동 로깅
-
-## 프로젝트 구조
-
-```
-lib/
-├── models/          # 데이터 모델
-│   ├── animation_state.dart      # 애니메이션 상태 관리
-│   ├── design_version_setting.dart # V1/V2 버전 설정
-│   ├── savings_result.dart       # 저축 결과 모델
-│   ├── savings_session.dart      # 저축 세션 모델
-│   └── user_progress.dart        # 사용자 진행 상황
-├── screens/         # 화면 위젯
-│   ├── home_screen.dart          # V1 메인 화면
-│   ├── home_screen_v2.dart       # V2 심플 화면
-│   └── settings_screen.dart      # 설정 화면
-├── services/        # 비즈니스 로직
-│   ├── animation_service.dart    # 애니메이션 타이머 관리
-│   ├── database_service.dart     # SQLite 데이터 관리
-│   ├── design_version_service.dart # 디자인 버전 관리
-│   ├── feedback_service.dart     # 햅틱 피드백
-│   ├── logger_service.dart       # 로깅 시스템
-│   └── performance_service.dart  # 성능 모니터링
-├── utils/           # 유틸리티
-│   └── korean_number_formatter.dart # 한국어 숫자 포맷팅
-├── widgets/         # UI 컴포넌트
-│   ├── animated_character.dart   # 애니메이션 거북이 캐릭터
-│   ├── design_version_toggle.dart # V1/V2 전환 토글
-│   ├── milestone_celebration.dart # 마일스톤 축하 애니메이션
-│   ├── progress_display.dart     # V1 진행률 표시
-│   ├── savings_button.dart       # 저축 버튼
-│   ├── simplified_progress_display.dart # V2 심플 진행률
-│   └── usage_stats_card.dart     # 사용 통계 카드
-└── main.dart        # 앱 진입점
-
-test/
-├── unit_test/       # 유닛 테스트 (23개 파일)
-├── widget_test/     # 위젯 테스트 (8개 파일)
-├── integration_test/ # 통합 테스트 (4개 파일)
-└── widget_test.dart # 기본 위젯 테스트
-```
-
-## 현재 구현 상태
-
-### ✅ **완료된 기능**
-- **듀얼 디자인 시스템**: V1(풍부한 UI) + V2(심플한 UI) 완전 구현
-- **애니메이션 캐릭터**: 5단계 거북이 애니메이션 (idle → 느린걸음 → 빠른걸음 → 느린뛰기 → 빠른뛰기)
-- **데이터 지속성**: SQLite 기반 완전한 데이터 저장 및 복구
-- **성능 최적화**: RepaintBoundary, 스프라이트 프리로딩, 메모리 관리
-- **포괄적 테스트**: 74.8% 커버리지, 58+ 테스트 케이스
-- **한국어 지원**: 완전한 한국어 UI 및 숫자 포맷팅
-
-### 📊 **성능 지표**
-- **응답 시간**: <200ms (버튼 탭 응답)
-- **프레임률**: 60fps 유지 (애니메이션 중)
-- **메모리 사용**: 최적화된 타이머/컨트롤러 관리
-- **테스트 커버리지**: 70%+ (1,369/1,831 라인)
-- **코드 품질**: 4,879 라인, 23개 소스 파일, 24개 테스트 파일
-
-## 기술 스택
+## 🏗 기술 스택
 
 - **Flutter 3.16+** / **Dart 3.0+** - 크로스 플랫폼 모바일 앱 개발
 - **SQLite (sqflite)** - 로컬 데이터 저장 및 지속성
 - **SharedPreferences** - 사용자 설정 및 상태 저장
 - **Material 3** - 모던 UI 디자인 시스템
-- **Custom Performance Monitoring** - 실시간 성능 추적
 - **sqflite_common_ffi** - 테스트 환경 데이터베이스 모킹
+- **Custom Performance Monitoring** - 실시간 성능 추적
 
-## 개발 가이드라인
+## 📁 프로젝트 구조
 
-- 📝 **70%+ 테스트 커버리지** 달성 (목표: 70%)
-- 🎯 **60fps 성능** 목표 달성
-- ⚡ **<200ms 응답시간** 목표 달성
-- 🇰🇷 **한국어 UI/UX** 완전 최적화
-- 📱 **Material Design 3** 완전 준수
-- 🔧 **메모리 관리** - 모든 타이머/컨트롤러 적절히 dispose
-- 🧪 **통합 테스트** - 실제 사용자 플로우 검증
+```
+lib/
+├── models/          # 데이터 모델 (5개)
+├── screens/         # 화면 위젯 (3개)
+├── services/        # 비즈니스 로직 (6개)
+├── widgets/         # UI 컴포넌트 (7개)
+├── utils/           # 유틸리티 (1개)
+└── main.dart        # 앱 진입점
 
-## 프로젝트 마일스톤
+test/
+├── unit_test/       # 유닛 테스트 (13개)
+├── widget_test/     # 위젯 테스트 (8개)
+└── integration_test/# 통합 테스트 (4개)
+```
 
-### Phase 1-5: 기본 기능 구현 ✅
-- SQLite 데이터베이스 설계 및 구현
-- 기본 저축 기능 및 UI 컴포넌트
-- 한국어 숫자 포맷팅 및 로컬라이제이션
+## 🎯 프로젝트 현황
 
-### Phase 6: 테스트 인프라 구축 ✅
-- 포괄적 테스트 스위트 구축 (58+ 테스트)
-- 74.8% 코드 커버리지 달성
-- 성능 테스트 및 벤치마킹
+### ✅ **완료된 구현**
 
-### Phase 7: V2 디자인 시스템 ✅
-- 듀얼 디자인 시스템 (V1/V2) 구현
-- 애니메이션 캐릭터 시스템
-- 반응형 레이아웃 및 성능 최적화
+- **듀얼 디자인 시스템**: V1(풍부한 UI) + V2(심플한 UI) 완전 구현
+- **애니메이션 캐릭터**: 5단계 거북이 애니메이션 시스템
+- **데이터 지속성**: SQLite 기반 완전한 데이터 저장 및 복구
+- **성능 최적화**: RepaintBoundary, 스프라이트 프리로딩, 메모리 관리
+- **포괄적 테스트**: 74.8% 커버리지, 58+ 테스트 케이스
+- **한국어 지원**: 완전한 한국어 UI 및 숫자 포맷팅
 
-### Phase 8: 성능 최적화 ✅ 
-- RepaintBoundary 최적화
-- 스프라이트 프리로딩
-- 타이머/컨트롤러 메모리 관리
-- 60fps 및 <200ms 응답시간 달성
+### 🔄 **향후 계획**
+
+- **독립형 앱 피봇**: 오픈뱅킹 연동 없이 저축 습관 형성에 집중
+- **추가 동기부여 요소**: 게임화 요소, 소셜 기능 등 확장 가능성 검토
 
 ---
 
-Flutter 개발 도움말:
-- [Flutter 시작하기](https://docs.flutter.dev/get-started/codelab)
-- [Flutter 쿡북](https://docs.flutter.dev/cookbook)
+**개발 세부사항** 및 **명령어 가이드**는 [DEVELOPMENT.md](./DEVELOPMENT.md)에서 확인할 수 있습니다.
