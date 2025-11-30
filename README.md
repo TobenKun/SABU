@@ -8,8 +8,8 @@
 **기술적 가치**: 70%+ 테스트 커버리지, 60fps 성능, 듀얼 디자인 시스템으로 **고품질 코드** 구현
 
 ## 📱 앱 실행 데모
+![SimulatorScreenRecording-iPhone16-2025-11-30at16-ezgif com-resize](https://github.com/user-attachments/assets/a35daea9-b439-4210-81d7-5558ed944094)
 
-<img src="/docs/images/iPhone%2016%20Simulator%20Recording%20Nov%2030%202025.gif" width="250">
 
 _V1/V2 디자인 전환 및 애니메이션 캐릭터 동작 데모_
 ## 🛠 기술적 도전과 해결
