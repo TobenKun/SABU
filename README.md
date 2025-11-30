@@ -1,4 +1,4 @@
-# One-Touch Savings (원터치 저축) 🇰🇷
+# One-Touch Savings (가제)
 
 > **Spec-Driven Development + TDD**로 구현한 Flutter 저축 앱  
 > 복잡한 상태 관리, 성능 최적화, 포괄적 테스트를 통한 **실용적 문제 해결 능력** 증명
